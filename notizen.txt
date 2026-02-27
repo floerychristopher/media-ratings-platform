@@ -1,0 +1,46 @@
+Stand: 25.02
+Nicht pushen bevor Kommentare bearbeitet worden sind (Models, etc)
+
+
+
+WIE MEIN HTTP SERVER FUNKTIONIERT:
+
+--- Entities ---
+Router.java besteht aus:                    - private record Route (besteht aus: method, pattern, patternParts, Function<HttpRequest, HttpResponse> handler)
+                                            - private final List<Route> routes
+                                            - public void addRoute()
+                                            - public HttpResponse
+
+
+
+--- Ablauf ---
+
+1. Routen hinzufügen
+
+Main.java ruft erstellt Router:                     Router router = new Router();
+Router.java deklariert Route & routes:              private record Route(
+                                                                  String method,
+                                                                  String pattern,           // "/api/media/{id}"
+                                                                  String[] patternParts,    // ["api", "media", "{id}"]
+                                                                  Function<HttpRequest, HttpResponse> handler
+                                                    ) {}
+                                                    private final List<Route> routes = new ArrayList<>();
+
+In Main.java wird router.addRoute() aufgerufen:     router.addRoute("GET", "/api/hello", (HttpRequest req) -> {
+                                                                return HttpResponse.ok("{\"message\":\"Hello, MRP!\"}");
+                                                    });
+
+    Innerhalb Router.java in addRoute():            "/api/hello" -> ["api", "hello"]
+                                                    -> String[] parts == ["api", "hello"]
+                                                    -> mit routes.add wird alles in einer new Route gespeichert
+
+
+2. Schritt 2
+Main.java macht weiter und erstellt ein HttpServer Objekt:      HttpServer server = new HttpServer(9090, router);
+Main.java startet HttpServer:                                   server.start();
+Innerhalb start():
+                    1. Socket wird erstellt: ServerSocket serverSocket = new ServerSocket(port)
+                    2. Wartet bis Client sich verbindet: Socket clientSocket = serverSocket.accept();
+                    3. ^^^^^^KOMPLIZIERT, ANSCHAUEN!^^^^^^^^^^^^^^
+
+
