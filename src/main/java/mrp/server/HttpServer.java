@@ -18,7 +18,7 @@ public class HttpServer {
     public HttpServer(int port, Router router) {
         this.port = port;
         this.router = router;
-        // Each request gets its own thread from the pool
+        // Each request gets its own thread from the pool (initialize thread pool)
         this.threadPool = Executors.newFixedThreadPool(10);
     }
 
