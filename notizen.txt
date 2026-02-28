@@ -41,6 +41,39 @@ Main.java startet HttpServer:                                   server.start();
 Innerhalb start():
                     1. Socket wird erstellt: ServerSocket serverSocket = new ServerSocket(port)
                     2. Wartet bis Client sich verbindet: Socket clientSocket = serverSocket.accept();
-                    3. ^^^^^^KOMPLIZIERT, ANSCHAUEN!^^^^^^^^^^^^^^
+                    3. Request wird an freien Thread übergeben: threadPool.submit(() -> handleConnection(clientSocket));
+                    4. Und dann asynchron ausgeführt:
+
+Innerhalb handleConnection():
+                    1. Input und Output Streams holen (Standart-Prozedere) client.getInputStream() & client.getOutputStream()
+                    2. Dann muss dieser Input geparsed werden (weil Byte-Stream)
+                            innerhalb HttpRequest.parse():
+                                1. Standart-Prozedere: BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
+                                2. requestLine speichern: String requestLine = reader.readLine();
+                                3. (PARSE REQUEST LINE)Objekte in der requestLine seperat speichern: String[] parts = requestLine.split(" ");
+                                4. Path von queryString splitten:   int idx = fullPath.indexOf('?');
+                                                                    request.path = fullPath.substring(0, idx);
+                                                                    request.queryString = fullPath.substring(idx + 1);
+                                5. queryString an parseQueryParams() übergeben für Weiterbearbeitung
+                                6. (PARSE HEADERS) Nächste line lesen (Header line): while ((headerLine = reader.readLine()) != null && !headerLine.isEmpty())
+                                7. Die headers in key value Paare umwandeln und in request.headers speichern
+                                8. (PARSE BODY) Auf vorher gefüllte Map (Key-value) zugreifen: String contentLengthStr = request.headers.get("content-length");
+                                9. Char array der größe contentLength erstellen: char[] bodyChars = new char[contentLength];
+                                10. bodyChars wird dann Schubweise mit chars befüllt:                while (totalRead < contentLength) {
+                                                                                                          int read = reader.read(bodyChars, totalRead, contentLength - totalRead);
+                                                                                                          if (read == -1) break;
+                                                                                                          totalRead += read;
+                                                                                                      }
+                                11. Und der String erstellt und in request.body gespeichert: request.body = new String(bodyChars, 0, totalRead);
+
+Zurück zu handleConnection(): Der gesamte HTTP Request wurde nun geparsed und in HttpRequest request gespeichert
+Nächster Schritt -> routing: HTTP Request wurde geparsed, muss aber nun zur jeweiligen Endpoint geroutet werden: router.route(request)
+Innerhalb route(request): for (Route route : routes) <- jede gespeichert route durchgehen und checken, ob sie mit request übereinstimmt
+    1. Schleife jeden Index der gespeicherten Route und des Requests zu vergleichen ["api", "test", 42] verglichen mit ["api", "test", {id}]
+    2. Falls eine path variable existiert ({id}) wird diese extrahiert (von {id} zu id) und dann mit dem jeweiligen Wert
+       des korrespondierenden Requestfelds in einer Map zu einem Key Value Pair gespeichert: pathParams.put(paramName, requestPart)
+       oder id -> 42
+    3. In der Request speichern so wie alle anderen Infos davor: request.setPathParams(pathParams)
+    4.
 
 

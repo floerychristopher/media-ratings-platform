@@ -49,18 +49,22 @@ public class Router {
         String[] requestParts = request.getPath().substring(1).split("/");
 
         for (Route route : routes) {
+            // Methode überprüfen
             if (!route.method().equals(request.getMethod())) continue;
+            // Länge der Parts überprüfen
             if (route.patternParts().length != requestParts.length) continue;
 
             Map<String, String> pathParams = new HashMap<>();
             boolean matches = true;
 
+            // Jeden pattern part der jeweiligen route durchgehen und mit dem jeweiligen part des requests vergleichen
             for (int i = 0; i < route.patternParts().length; i++) {
                 String patternPart = route.patternParts()[i];
                 String requestPart = requestParts[i];
 
                 if (patternPart.startsWith("{") && patternPart.endsWith("}")) {
-                    // It's a path variable — extract it
+                    // Its a path variable -> extract it
+                    // geschwungene Klammern entfernen
                     String paramName = patternPart.substring(1, patternPart.length() - 1);
                     pathParams.put(paramName, requestPart);
                 } else if (!patternPart.equals(requestPart)) {
@@ -73,6 +77,7 @@ public class Router {
             if (matches) {
                 // Inject extracted path params into the request
                 request.setPathParams(pathParams);
+                // Handler (Lambda Funktion) der Route die gematcht hat wird aufgerufen und request auf diese Funktion applied damit?
                 return route.handler().apply(request);
             }
         }

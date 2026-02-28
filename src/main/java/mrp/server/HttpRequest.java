@@ -33,6 +33,7 @@ public class HttpRequest {
      */
     public static HttpRequest parse(InputStream inputStream) throws IOException {
         HttpRequest request = new HttpRequest();
+        // Byte-Stream -> Char-Stream -> buffered Char-Stream (Buffered Reader bietet readLine())
         BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream));
 
         // --- 1. Parse the request line ---
@@ -47,16 +48,23 @@ public class HttpRequest {
             throw new IOException("Malformed request line: " + requestLine);
         }
 
+        // Save HTTP method in upper case (GET, POST)
         request.method = parts[0].toUpperCase();
 
         // Split path from query string: "/api/media?genre=action" → path + query
         String fullPath = parts[1];
         if (fullPath.contains("?")) {
+            // Position von '?'
             int idx = fullPath.indexOf('?');
+            // fullPath von 0 bis (ohne) idx
+            // Save HTTP path
             request.path = fullPath.substring(0, idx);
+            // fullPath alles nach '?' (auch ohne '?')
+            // Save HTTP queryString
             request.queryString = fullPath.substring(idx + 1);
             request.parseQueryParams();
         } else {
+            // Save HTTP path
             request.path = fullPath;
         }
 
@@ -66,6 +74,7 @@ public class HttpRequest {
         while ((headerLine = reader.readLine()) != null && !headerLine.isEmpty()) {
             int colonIdx = headerLine.indexOf(':');
             if (colonIdx > 0) {
+                // Header in key value pairs umwandeln
                 String key = headerLine.substring(0, colonIdx).trim();
                 String value = headerLine.substring(colonIdx + 1).trim();
                 // Store headers lowercase for easy lookup
@@ -94,9 +103,8 @@ public class HttpRequest {
         return request;
     }
 
-    /**
-     * Parses "genre=action&year=2020&sort=title" into a map
-     */
+     // Parses queryString into a map (key value pair)
+     // e.g. "genre=action&year=2020&sort=title" -> queryParams.get("genre") -> "action" / queryParams.get("year") -> "2020" ...
     private void parseQueryParams() {
         if (queryString == null || queryString.isEmpty()) return;
 

@@ -42,7 +42,7 @@ public class HttpServer {
     }
 
     private void handleConnection(Socket clientSocket) {
-        try (clientSocket) { // auto-closes when done
+        try (clientSocket) { // auto-close when done
             InputStream input = clientSocket.getInputStream();
             OutputStream output = clientSocket.getOutputStream();
 
