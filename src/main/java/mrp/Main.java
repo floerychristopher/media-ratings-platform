@@ -1,32 +1,45 @@
 package mrp;
 
+import mrp.auth.TokenManager;
+import mrp.controller.UserController;
+import mrp.db.DatabaseManager;
+import mrp.repository.UserRepository;
 import mrp.server.HttpServer;
-import mrp.server.HttpRequest;
-import mrp.server.HttpResponse;
 import mrp.server.Router;
+import mrp.service.UserService;
 
 public class Main {
     public static void main(String[] args) {
+        // --- Initialize infrastructure ---
+        DatabaseManager db = DatabaseManager.getInstance();
+        db.initializeSchema();
+
+        TokenManager tokenManager = new TokenManager();
+
+        // --- Build the dependency chain ---
+        // Repository depends on DB
+        UserRepository userRepository = new UserRepository(db);
+
+        // Service depends on Repository + Auth
+        UserService userService = new UserService(userRepository, tokenManager);
+
+        // Controller depends on Service + Auth
+        UserController userController = new UserController(userService, tokenManager);
+
+        // --- Set up routing ---
         Router router = new Router();
 
-        // Test endpoint — prove the server works
-        router.addRoute("GET", "/api/hello", (HttpRequest req) -> {
-            return HttpResponse.ok("{\"message\":\"Hello, MRP!\"}");
-        });
-        // addRoute registriert genau diese Route. Kommt jetzt ein Request mit genau dieser Struktur, wird die Lambda-Funktion ausgeführt
+        // Public endpoints (no auth needed)
+        router.addRoute("POST", "/api/users/register", userController::register);
+        router.addRoute("POST", "/api/users/login", userController::login);
 
-        // Echo endpoint — returns whatever you POST
-        router.addRoute("POST", "/api/echo", (HttpRequest req) -> {
-            return HttpResponse.ok(req.getBody());
-        });
+        // Protected endpoints
+        router.addRoute("GET", "/api/users/{username}/profile", userController::getProfile);
+        router.addRoute("PUT", "/api/users/{username}/profile", userController::updateProfile);
 
-        // Path param test — GET /api/test/42 → {"id":"42"}
-        router.addRoute("GET", "/api/test/{id}", (HttpRequest req) -> {
-            String id = req.getPathParam("id");
-            return HttpResponse.ok("{\"id\":\"" + id + "\"}");
-        });
+        // MediaController, RatingController etc. will be added the same way
 
-        // Dem neu erstellten Server wird router übergeben damit der Server weiß wie er Request behandeln soll.
+        // --- Start server ---
         HttpServer server = new HttpServer(9090, router);
         server.start();
     }
