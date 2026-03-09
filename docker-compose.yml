@@ -1,11 +1,10 @@
 services:
   postgres:
     image: postgres:16
+    container_name: mrp_postgres
     environment:
       POSTGRES_DB: mrp
       POSTGRES_USER: mrp
       POSTGRES_PASSWORD: mrp
     ports:
       - "5432:5432"
-    volumes:
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
