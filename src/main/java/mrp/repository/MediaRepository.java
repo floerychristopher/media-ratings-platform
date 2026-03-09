@@ -1,0 +1,97 @@
+package mrp.repository;
+
+import mrp.db.DatabaseManager;
+import mrp.model.Media;
+
+import java.sql.*;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+
+public class MediaRepository {
+    private final DatabaseManager db;
+
+    public MediaRepository(DatabaseManager db) {
+        this.db = db;
+    }
+
+    public Media create(Media media) throws SQLException {
+        String sql = "INSERT INTO media (title, description, media_type, release_year, genre, age_restriction, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
+        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+            stmt.setString(1, media.getTitle());
+            stmt.setString(2, media.getDescription());
+            stmt.setString(3, media.getMediaType());
+            stmt.setInt(4, media.getReleaseYear());
+            stmt.setString(5, media.getGenre());
+            stmt.setInt(6, media.getAgeRestriction());
+            stmt.setInt(7, media.getCreatedBy());
+            stmt.setTimestamp(8, Timestamp.valueOf(LocalDateTime.now()));
+
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                media.setId(rs.getInt("id"));
+                media.setCreatedAt(LocalDateTime.now());
+            }
+        }
+        return media;
+    }
+
+    public Media getById(int id) throws SQLException {
+        String sql = "SELECT * FROM media WHERE id = ?";
+        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) return mapRow(rs);
+        }
+        return null;
+    }
+
+    public List<Media> getAll() throws SQLException {
+        String sql = "SELECT * FROM media ORDER BY id DESC";
+        List<Media> list = new ArrayList<>();
+        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) list.add(mapRow(rs));
+        }
+        return list;
+    }
+
+    public boolean update(Media media) throws SQLException {
+        String sql = "UPDATE media SET title=?, description=?, media_type=?, release_year=?, genre=?, age_restriction=? WHERE id=? AND created_by=?";
+        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+            stmt.setString(1, media.getTitle());
+            stmt.setString(2, media.getDescription());
+            stmt.setString(3, media.getMediaType());
+            stmt.setInt(4, media.getReleaseYear());
+            stmt.setString(5, media.getGenre());
+            stmt.setInt(6, media.getAgeRestriction());
+            stmt.setInt(7, media.getId());
+            stmt.setInt(8, media.getCreatedBy());
+
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    public boolean delete(int mediaId, int userId) throws SQLException {
+        String sql = "DELETE FROM media WHERE id=? AND created_by=?";
+        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+            stmt.setInt(1, mediaId);
+            stmt.setInt(2, userId);
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    private Media mapRow(ResultSet rs) throws SQLException {
+        Media m = new Media();
+        m.setId(rs.getInt("id"));
+        m.setTitle(rs.getString("title"));
+        m.setDescription(rs.getString("description"));
+        m.setMediaType(rs.getString("media_type"));
+        m.setReleaseYear(rs.getInt("release_year"));
+        m.setGenre(rs.getString("genre"));
+        m.setAgeRestriction(rs.getInt("age_restriction"));
+        m.setCreatedBy(rs.getInt("created_by"));
+        m.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+        return m;
+    }
+}
