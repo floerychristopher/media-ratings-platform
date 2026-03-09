@@ -1,11 +1,12 @@
 package mrp.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import mrp.model.Media;
+import mrp.model.User; // WICHTIG: Hat gefehlt!
 import mrp.service.MediaService;
 import mrp.auth.TokenManager;
 import mrp.server.HttpRequest;
 import mrp.server.HttpResponse;
+import mrp.util.JsonUtil;
 
 import java.sql.SQLException;
 import java.util.List;
@@ -13,7 +14,6 @@ import java.util.List;
 public class MediaController {
     private final MediaService service;
     private final TokenManager tokenManager;
-    private final ObjectMapper mapper = new ObjectMapper();
 
     public MediaController(MediaService service, TokenManager tokenManager) {
         this.service = service;
@@ -22,15 +22,14 @@ public class MediaController {
 
     public HttpResponse create(HttpRequest req) {
         try {
-            String token = req.getToken();
-            User user = tokenManager.getUserByToken(token);
+            User user = authenticate(req);
             if (user == null) return HttpResponse.unauthorized();
 
-            Media media = mapper.readValue(req.getBody(), Media.class);
-            media.setCreatedBy(user.getId()); // <-- use user.getId() from TokenManager
+            Media media = JsonUtil.fromJson(req.getBody(), Media.class);
+            media.setCreatedBy(user.getId());
             Media created = service.createMedia(media);
 
-            return HttpResponse.created(mapper.writeValueAsString(created));
+            return HttpResponse.created(JsonUtil.toJson(created));
         } catch (SQLException e) {
             return HttpResponse.internalError(e.getMessage());
         } catch (Exception e) {
@@ -43,16 +42,21 @@ public class MediaController {
             int id = Integer.parseInt(req.getPathParam("id"));
             Media media = service.getMediaById(id);
             if (media == null) return HttpResponse.notFound();
-            return HttpResponse.ok(mapper.writeValueAsString(media));
+
+            return HttpResponse.ok(JsonUtil.toJson(media));
+        } catch (NumberFormatException e) {
+            return HttpResponse.badRequest("ID must be a number");
         } catch (Exception e) {
-            return HttpResponse.badRequest("Invalid ID");
+            return HttpResponse.internalError(e.getMessage());
         }
     }
 
     public HttpResponse getAll(HttpRequest req) {
         try {
+            // Hinweis: Laut Postman-Collection müssen wir hier später noch das Filtern
+            // und Suchen anbauen (req.getQueryParams()). Für die Intermediate Submission reicht es aber so!
             List<Media> all = service.getAllMedia();
-            return HttpResponse.ok(mapper.writeValueAsString(all));
+            return HttpResponse.ok(JsonUtil.toJson(all));
         } catch (SQLException e) {
             return HttpResponse.internalError(e.getMessage());
         }
@@ -60,17 +64,23 @@ public class MediaController {
 
     public HttpResponse update(HttpRequest req) {
         try {
-            String token = req.getToken();
-            User user = tokenManager.getUserByToken(token);
+            User user = authenticate(req);
             if (user == null) return HttpResponse.unauthorized();
 
             int id = Integer.parseInt(req.getPathParam("id"));
-            Media media = mapper.readValue(req.getBody(), Media.class);
+
+            // NEU: Vorhandenes Media-Objekt laden, um z.B. createdAt zu erhalten
+            Media existingMedia = service.getMediaById(id);
+            if (existingMedia == null) return HttpResponse.notFound();
+
+            Media media = JsonUtil.fromJson(req.getBody(), Media.class);
             media.setId(id);
+            media.setCreatedAt(existingMedia.getCreatedAt()); // Datum aus DB übernehmen
 
             boolean ok = service.updateMedia(media, user.getId());
-            if (!ok) return HttpResponse.forbidden();
-            return HttpResponse.ok(mapper.writeValueAsString(media));
+            if (!ok) return HttpResponse.forbidden(); // Gibt an, dass man nicht der Creator ist
+
+            return HttpResponse.ok(JsonUtil.toJson(media));
         } catch (SQLException e) {
             return HttpResponse.internalError(e.getMessage());
         } catch (Exception e) {
@@ -80,18 +90,26 @@ public class MediaController {
 
     public HttpResponse delete(HttpRequest req) {
         try {
-            String token = req.getToken();
-            User user = tokenManager.getUserByToken(token);
+            User user = authenticate(req);
             if (user == null) return HttpResponse.unauthorized();
 
             int id = Integer.parseInt(req.getPathParam("id"));
             boolean ok = service.deleteMedia(id, user.getId());
             if (!ok) return HttpResponse.forbidden();
+
             return HttpResponse.noContent();
         } catch (SQLException e) {
             return HttpResponse.internalError(e.getMessage());
         } catch (Exception e) {
             return HttpResponse.badRequest("Invalid ID");
         }
+    }
+
+    /**
+     * Helper: Extrahieren des Users analog zum UserController
+     */
+    private User authenticate(HttpRequest request) {
+        String token = request.getToken();
+        return tokenManager.getUserByToken(token);
     }
 }
