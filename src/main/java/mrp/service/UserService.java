@@ -3,6 +3,7 @@ package mrp.service;
 import mrp.auth.TokenManager;
 import mrp.model.User;
 import mrp.repository.UserRepository;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 import java.util.Map;
@@ -35,9 +36,9 @@ public class UserService {
             throw new IllegalStateException("Username already exists");
         }
 
-        // In a real app you'd hash the password here (BCrypt etc.)
-        // For this project, plain text is acceptable
-        User user = new User(username, password);
+        String hashedPassword = BCrypt.hashpw(password, BCrypt.gensalt());
+
+        User user = new User(username, hashedPassword);
         return userRepository.create(user);
     }
 
@@ -51,7 +52,7 @@ public class UserService {
         }
 
         User user = userRepository.findByUsername(username);
-        if (user == null || !user.getPassword().equals(password)) {
+        if (user == null || !BCrypt.checkpw(password, user.getPassword())) {
             throw new IllegalArgumentException("Invalid credentials");
         }
 
