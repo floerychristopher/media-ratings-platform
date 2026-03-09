@@ -6,6 +6,7 @@ import mrp.model.Media;
 import java.sql.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MediaRepository {
@@ -17,12 +18,20 @@ public class MediaRepository {
 
     public Media create(Media media) throws SQLException {
         String sql = "INSERT INTO media (title, description, media_type, release_year, genre, age_restriction, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
-        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+
+        // WICHTIG: Connection und Statement im try-Block deklarieren, damit beide geschlossen werden!
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, media.getTitle());
             stmt.setString(2, media.getDescription());
             stmt.setString(3, media.getMediaType());
             stmt.setInt(4, media.getReleaseYear());
-            stmt.setString(5, media.getGenre());
+
+            // Liste in kommagetrennten String umwandeln ("sci-fi,thriller")
+            String genreString = media.getGenres() != null ? String.join(",", media.getGenres()) : "";
+            stmt.setString(5, genreString);
+
             stmt.setInt(6, media.getAgeRestriction());
             stmt.setInt(7, media.getCreatedBy());
             stmt.setTimestamp(8, Timestamp.valueOf(LocalDateTime.now()));
@@ -38,7 +47,8 @@ public class MediaRepository {
 
     public Media getById(int id) throws SQLException {
         String sql = "SELECT * FROM media WHERE id = ?";
-        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             ResultSet rs = stmt.executeQuery();
             if (rs.next()) return mapRow(rs);
@@ -49,7 +59,8 @@ public class MediaRepository {
     public List<Media> getAll() throws SQLException {
         String sql = "SELECT * FROM media ORDER BY id DESC";
         List<Media> list = new ArrayList<>();
-        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) list.add(mapRow(rs));
         }
@@ -58,12 +69,17 @@ public class MediaRepository {
 
     public boolean update(Media media) throws SQLException {
         String sql = "UPDATE media SET title=?, description=?, media_type=?, release_year=?, genre=?, age_restriction=? WHERE id=? AND created_by=?";
-        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setString(1, media.getTitle());
             stmt.setString(2, media.getDescription());
             stmt.setString(3, media.getMediaType());
             stmt.setInt(4, media.getReleaseYear());
-            stmt.setString(5, media.getGenre());
+
+            String genreString = media.getGenres() != null ? String.join(",", media.getGenres()) : "";
+            stmt.setString(5, genreString);
+
             stmt.setInt(6, media.getAgeRestriction());
             stmt.setInt(7, media.getId());
             stmt.setInt(8, media.getCreatedBy());
@@ -74,7 +90,8 @@ public class MediaRepository {
 
     public boolean delete(int mediaId, int userId) throws SQLException {
         String sql = "DELETE FROM media WHERE id=? AND created_by=?";
-        try (PreparedStatement stmt = db.getConnection().prepareStatement(sql)) {
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, mediaId);
             stmt.setInt(2, userId);
             return stmt.executeUpdate() > 0;
@@ -88,10 +105,21 @@ public class MediaRepository {
         m.setDescription(rs.getString("description"));
         m.setMediaType(rs.getString("media_type"));
         m.setReleaseYear(rs.getInt("release_year"));
-        m.setGenre(rs.getString("genre"));
+
+        // Kommagetrennten String aus der DB wieder in eine Liste umwandeln
+        String genreString = rs.getString("genre");
+        if (genreString != null && !genreString.isEmpty()) {
+            m.setGenres(Arrays.asList(genreString.split(",")));
+        } else {
+            m.setGenres(new ArrayList<>());
+        }
+
         m.setAgeRestriction(rs.getInt("age_restriction"));
         m.setCreatedBy(rs.getInt("created_by"));
-        m.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        if (createdAt != null) m.setCreatedAt(createdAt.toLocalDateTime());
+
         return m;
     }
 }
