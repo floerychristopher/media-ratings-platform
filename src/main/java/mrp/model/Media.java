@@ -1,16 +1,17 @@
 package mrp.model;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class Media {
     private int id;
     private String title;
     private String description;
-    private String mediaType;     // "MOVIE", "SERIES", "GAME"
+    private String mediaType;
     private int releaseYear;
-    private String genre;         // comma-separated: "Action,Sci-Fi"
+    private List<String> genres;  // Angepasst an Postman: Liste statt String
     private int ageRestriction;
-    private int createdBy;        // user ID of creator
+    private int createdBy;
     private LocalDateTime createdAt;
 
     public Media() {}
@@ -31,8 +32,8 @@ public class Media {
     public int getReleaseYear() { return releaseYear; }
     public void setReleaseYear(int releaseYear) { this.releaseYear = releaseYear; }
 
-    public String getGenre() { return genre; }
-    public void setGenre(String genre) { this.genre = genre; }
+    public List<String> getGenres() { return genres; }
+    public void setGenres(List<String> genres) { this.genres = genres; }
 
     public int getAgeRestriction() { return ageRestriction; }
     public void setAgeRestriction(int ageRestriction) { this.ageRestriction = ageRestriction; }
