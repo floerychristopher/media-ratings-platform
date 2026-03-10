@@ -109,4 +109,24 @@ public class RatingController {
         String token = request.getToken();
         return tokenManager.getUserByToken(token);
     }
+
+    public HttpResponse delete(HttpRequest req) {
+        try {
+            User user = authenticate(req);
+            if (user == null) return HttpResponse.unauthorized();
+
+            int ratingId = Integer.parseInt(req.getPathParam("id"));
+
+            boolean success = ratingService.deleteRating(ratingId, user.getId());
+            if (success) {
+                return HttpResponse.noContent(); // 204 No Content
+            } else {
+                return HttpResponse.badRequest("Rating not found or you are not the creator.");
+            }
+        } catch (NumberFormatException e) {
+            return HttpResponse.badRequest("Invalid Rating ID");
+        } catch (Exception e) {
+            return HttpResponse.internalError(e.getMessage());
+        }
+    }
 }

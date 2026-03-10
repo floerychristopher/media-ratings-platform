@@ -113,4 +113,14 @@ public class RatingRepository {
         }
         return list;
     }
+    public boolean delete(int ratingId, int userId) throws SQLException {
+        String sql = "DELETE FROM ratings WHERE id = ? AND user_id = ?";
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, ratingId);
+            stmt.setInt(2, userId);
+            return stmt.executeUpdate() > 0; // true wenn eine Zeile gelöscht wurde
+        }
+    }
+
 }

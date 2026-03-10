@@ -76,6 +76,7 @@ public class Main {
         // Leaderboard & Rating History
         router.addRoute("GET", "/api/leaderboard", leaderboardController::getLeaderboard);
         router.addRoute("GET", "/api/users/{username}/ratings", userController::getRatingHistory);
+        router.addRoute("DELETE", "/api/ratings/{id}", ratingController::delete);
 
         // --- Start server ---
         HttpServer server = new HttpServer(9090, router);

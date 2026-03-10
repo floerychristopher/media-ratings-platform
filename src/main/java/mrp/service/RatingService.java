@@ -69,4 +69,8 @@ public class RatingService {
     public java.util.List<Rating> getRatingsByUserId(int userId) throws SQLException {
         return ratingRepo.getByUserId(userId);
     }
+
+    public boolean deleteRating(int ratingId, int userId) throws SQLException {
+        return ratingRepo.delete(ratingId, userId);
+    }
 }
