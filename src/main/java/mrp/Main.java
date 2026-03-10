@@ -3,16 +3,17 @@ package mrp;
 import mrp.auth.TokenManager;
 import mrp.controller.RatingController;
 import mrp.controller.UserController;
-import mrp.controller.MediaController; // <-- NEU
+import mrp.controller.MediaController;
+import mrp.controller.LeaderboardController;
 import mrp.db.DatabaseManager;
 import mrp.repository.RatingRepository;
 import mrp.repository.UserRepository;
-import mrp.repository.MediaRepository; // <-- NEU
+import mrp.repository.MediaRepository;
 import mrp.server.HttpServer;
 import mrp.server.Router;
 import mrp.service.RatingService;
 import mrp.service.UserService;
-import mrp.service.MediaService; // <-- NEU
+import mrp.service.MediaService;
 
 public class Main {
     public static void main(String[] args) {
@@ -22,22 +23,25 @@ public class Main {
 
         TokenManager tokenManager = new TokenManager();
 
+        // --- Build the dependency chain ---
+
         // 1. Zuerst Media instanziieren
         MediaRepository mediaRepository = new MediaRepository(db);
         MediaService mediaService = new MediaService(mediaRepository);
         MediaController mediaController = new MediaController(mediaService, tokenManager);
 
-        // 2. Dann User (hier den mediaService mitgeben!)
-        UserRepository userRepository = new UserRepository(db);
-        UserService userService = new UserService(userRepository, tokenManager);
-        UserController userController = new UserController(userService, tokenManager, mediaService);
-
-        // --- Build the dependency chain for Rating ---
+        // 2. Dann Rating instanziieren (MUSS vor dem UserController passieren!)
         RatingRepository ratingRepository = new RatingRepository(db);
         RatingService ratingService = new RatingService(ratingRepository, mediaRepository);
         RatingController ratingController = new RatingController(ratingService, tokenManager);
 
-        mrp.controller.LeaderboardController leaderboardController = new mrp.controller.LeaderboardController(userService);
+        // 3. Dann User (hier den fertig gebauten mediaService und ratingService mitgeben!)
+        UserRepository userRepository = new UserRepository(db);
+        UserService userService = new UserService(userRepository, tokenManager);
+        UserController userController = new UserController(userService, tokenManager, mediaService, ratingService);
+
+        // 4. Zuletzt das Leaderboard
+        LeaderboardController leaderboardController = new LeaderboardController(userService);
 
         // --- Set up routing ---
         Router router = new Router();
@@ -68,10 +72,12 @@ public class Main {
         router.addRoute("DELETE", "/api/media/{id}/favorite", mediaController::removeFavorite);
         router.addRoute("GET", "/api/users/{username}/favorites", userController::getFavorites);
 
+        // Leaderboard & Rating History
         router.addRoute("GET", "/api/leaderboard", leaderboardController::getLeaderboard);
+        router.addRoute("GET", "/api/users/{username}/ratings", userController::getRatingHistory);
 
         // --- Start server ---
-        HttpServer server = new HttpServer(9090, router); // Port auf 8080 angepasst, wie in den Tests
+        HttpServer server = new HttpServer(9090, router); // Port auf 9090 wie bei dir eingestellt
         server.start();
     }
 }
