@@ -88,4 +88,8 @@ public class UserService {
         userRepository.update(user);
         return user;
     }
+
+    public java.util.List<User> getLeaderboard() throws java.sql.SQLException {
+        return userRepository.getLeaderboard();
+    }
 }
