@@ -122,4 +122,46 @@ public class MediaRepository {
 
         return m;
     }
+
+    // --- Favoriten ---
+
+    public boolean addFavorite(int mediaId, int userId) {
+        String sql = "INSERT INTO favorites (user_id, media_id) VALUES (?, ?)";
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, mediaId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            // Ignorieren, wenn es schon in den Favoriten ist (Primary Key Violation)
+            return false;
+        }
+    }
+
+    public boolean removeFavorite(int mediaId, int userId) {
+        String sql = "DELETE FROM favorites WHERE user_id = ? AND media_id = ?";
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setInt(2, mediaId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    public List<Media> getFavoritesByUserId(int userId) throws SQLException {
+        // Hier machen wir einen JOIN, um direkt alle Media-Daten der Favoriten zu bekommen
+        String sql = "SELECT m.* FROM media m JOIN favorites f ON m.id = f.media_id WHERE f.user_id = ?";
+        List<Media> list = new ArrayList<>();
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                list.add(mapRow(rs)); // mapRow existiert hier schon praktischerweise!
+            }
+        }
+        return list;
+    }
 }
