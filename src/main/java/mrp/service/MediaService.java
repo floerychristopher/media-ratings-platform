@@ -5,6 +5,7 @@ import mrp.repository.MediaRepository;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 public class MediaService {
     private final MediaRepository repo;
@@ -46,5 +47,11 @@ public class MediaService {
 
     public List<Media> getFavoritesByUserId(int userId) throws SQLException {
         return repo.getFavoritesByUserId(userId);
+    }
+
+    public List<Media> searchAndFilter(Map<String, String> queryParams) throws SQLException {
+        // Falls gar keine Parameter da sind, könnten wir auch direkt repo.getAll() aufrufen,
+        // aber unsere neue Suchfunktion deckt das als Standardfall ab!
+        return repo.searchAndFilter(queryParams);
     }
 }
