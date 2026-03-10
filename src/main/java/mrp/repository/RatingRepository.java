@@ -91,4 +91,26 @@ public class RatingRepository {
             return false;
         }
     }
+
+    public java.util.List<Rating> getByUserId(int userId) throws SQLException {
+        String sql = "SELECT * FROM ratings WHERE user_id = ? ORDER BY created_at DESC";
+        java.util.List<Rating> list = new java.util.ArrayList<>();
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Rating r = new Rating();
+                r.setId(rs.getInt("id"));
+                r.setMediaId(rs.getInt("media_id"));
+                r.setUserId(rs.getInt("user_id"));
+                r.setStars(rs.getInt("stars"));
+                r.setComment(rs.getString("comment"));
+                r.setCommentVisible(rs.getBoolean("comment_visible"));
+                r.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                list.add(r);
+            }
+        }
+        return list;
+    }
 }

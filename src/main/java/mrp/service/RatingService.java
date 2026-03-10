@@ -65,4 +65,8 @@ public class RatingService {
 
         return ratingRepo.confirmComment(ratingId);
     }
+
+    public java.util.List<Rating> getRatingsByUserId(int userId) throws SQLException {
+        return ratingRepo.getByUserId(userId);
+    }
 }
