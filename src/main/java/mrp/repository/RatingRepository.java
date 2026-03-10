@@ -55,7 +55,7 @@ public class RatingRepository {
         return null;
     }
 
-    // Aktualisiert Sterne und Kommentar (nur durch den Autor des Ratings)
+    // Aktualisiert Sterne und Kommentar (nur von Autor des Ratings)
     public boolean update(int ratingId, int userId, int stars, String comment) throws SQLException {
         String sql = "UPDATE ratings SET stars = ?, comment = ? WHERE id = ? AND user_id = ?";
         try (Connection conn = db.getConnection();
@@ -68,7 +68,7 @@ public class RatingRepository {
         }
     }
 
-    // Setzt den Kommentar auf sichtbar (Moderation)
+    // Setzt den Kommentar auf sichtbar
     public boolean confirmComment(int ratingId) throws SQLException {
         String sql = "UPDATE ratings SET comment_visible = TRUE WHERE id = ?";
         try (Connection conn = db.getConnection();
@@ -78,7 +78,7 @@ public class RatingRepository {
         }
     }
 
-    // Fügt einen Like hinzu. Wir fangen SQLExceptions ab, falls der User schon gelikt hat (Primary Key Violation).
+    // Fügt Like hinzu (SQLExceptions werden abgefangen, falls User schon gelikt hat)
     public boolean addLike(int ratingId, int userId) {
         String sql = "INSERT INTO rating_likes (rating_id, user_id) VALUES (?, ?)";
         try (Connection conn = db.getConnection();
@@ -87,7 +87,7 @@ public class RatingRepository {
             stmt.setInt(2, userId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            // Ignorieren, wenn der User bereits gelikt hat
+            // Ignorieren, wenn User schon gelikt hat
             return false;
         }
     }

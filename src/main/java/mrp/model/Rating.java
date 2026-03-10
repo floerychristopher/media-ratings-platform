@@ -10,8 +10,8 @@ public class Rating {
     private String comment;
     private boolean commentVisible;
     private LocalDateTime createdAt;
-    private int likeCount;         // not stored in DB — calculated on read
-    private String username;       // not stored — joined from users table for display
+    private int likeCount;
+    private String username;
 
     public Rating() {}
 

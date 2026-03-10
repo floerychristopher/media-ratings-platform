@@ -20,7 +20,7 @@ public class MediaRepository {
     public Media create(Media media) throws SQLException {
         String sql = "INSERT INTO media (title, description, media_type, release_year, genre, age_restriction, created_by, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING id";
 
-        // WICHTIG: Connection und Statement im try-Block deklarieren, damit beide geschlossen werden!
+        // Connection und Statement im try-Block, damit beide geschlossen werden
         try (Connection conn = db.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
 
@@ -29,7 +29,7 @@ public class MediaRepository {
             stmt.setString(3, media.getMediaType());
             stmt.setInt(4, media.getReleaseYear());
 
-            // Liste in kommagetrennten String umwandeln ("sci-fi,thriller")
+            // Liste in getrennten String umwandeln ("sci-fi,thriller")
             String genreString = media.getGenres() != null ? String.join(",", media.getGenres()) : "";
             stmt.setString(5, genreString);
 
@@ -107,7 +107,7 @@ public class MediaRepository {
         m.setMediaType(rs.getString("media_type"));
         m.setReleaseYear(rs.getInt("release_year"));
 
-        // Kommagetrennten String aus der DB wieder in eine Liste umwandeln
+        //getrennten String aus der DB wieder in eine Liste umwandeln
         String genreString = rs.getString("genre");
         if (genreString != null && !genreString.isEmpty()) {
             m.setGenres(Arrays.asList(genreString.split(",")));
@@ -134,7 +134,7 @@ public class MediaRepository {
             stmt.setInt(2, mediaId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            // Ignorieren, wenn es schon in den Favoriten ist (Primary Key Violation)
+            // Ignorieren, wenn es schon in den Favoriten ist (Primary Key)
             return false;
         }
     }
@@ -152,7 +152,7 @@ public class MediaRepository {
     }
 
     public List<Media> getFavoritesByUserId(int userId) throws SQLException {
-        // Hier machen wir einen JOIN, um direkt alle Media-Daten der Favoriten zu bekommen
+        //JOIN, um direkt alle Media-Daten der Favoriten zu bekommen
         String sql = "SELECT m.* FROM media m JOIN favorites f ON m.id = f.media_id WHERE f.user_id = ?";
         List<Media> list = new ArrayList<>();
         try (Connection conn = db.getConnection();
@@ -169,7 +169,7 @@ public class MediaRepository {
     // --- Suche und Filter ---
 
     public List<Media> searchAndFilter(Map<String, String> params) throws SQLException {
-        // Grund-Query mit JOIN für den Durchschnittsscore
+        // grundquery mit JOIN für den Durchschnittsscore
         StringBuilder sql = new StringBuilder(
                 "SELECT m.*, COALESCE(AVG(r.stars), 0) AS avg_score " +
                         "FROM media m " +
@@ -181,7 +181,7 @@ public class MediaRepository {
 
         // 1. Filter (WHERE)
         if (params.containsKey("title") && !params.get("title").isBlank()) {
-            sql.append("AND m.title ILIKE ? "); // ILIKE ignoriert Groß-/Kleinschreibung (Partial Matching)
+            sql.append("AND m.title ILIKE ? "); // ILIKE ignoriert Groß-/Kleinschreibung
             values.add("%" + params.get("title") + "%");
         }
         if (params.containsKey("genre") && !params.get("genre").isBlank()) {
@@ -201,7 +201,7 @@ public class MediaRepository {
             values.add(Integer.parseInt(params.get("ageRestriction")));
         }
 
-        // 2. Gruppierung (notwendig wegen des JOINs und der AVG-Funktion)
+        // 2. Gruppierung (notwendig wegen JOINs und der AVG-Funktion)
         sql.append("GROUP BY m.id ");
 
         // 3. Rating-Filter (HAVING)
@@ -219,7 +219,7 @@ public class MediaRepository {
         } else if (sortBy.equals("score")) {
             sql.append("ORDER BY avg_score DESC ");
         } else {
-            sql.append("ORDER BY m.id DESC "); // Standard-Sortierung
+            sql.append("ORDER BY m.id DESC "); // Standard Sortierung
         }
 
         // --- Ausführung ---
@@ -235,7 +235,7 @@ public class MediaRepository {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 Media m = mapRow(rs); // Bisheriges Mapping nutzen
-                m.setAverageScore(rs.getDouble("avg_score")); // Den berechneten Score ergänzen
+                m.setAverageScore(rs.getDouble("avg_score")); // berechneten Score ergänzen
                 list.add(m);
             }
         }

@@ -1,7 +1,7 @@
 package mrp.controller;
 
 import mrp.model.Media;
-import mrp.model.User; // WICHTIG: Hat gefehlt!
+import mrp.model.User;
 import mrp.service.MediaService;
 import mrp.auth.TokenManager;
 import mrp.server.HttpRequest;
@@ -54,10 +54,9 @@ public class MediaController {
 
     public HttpResponse getAll(HttpRequest req) {
         try {
-            // Alle Query-Parameter (?title=...&genre=...) aus der URL holen
+            // Query-Parameter aus URL holen
             Map<String, String> queryParams = req.getQueryParams();
 
-            // Suche über den Service ausführen
             List<Media> results = service.searchAndFilter(queryParams);
 
             return HttpResponse.ok(JsonUtil.toJson(results));
@@ -76,13 +75,13 @@ public class MediaController {
 
             int id = Integer.parseInt(req.getPathParam("id"));
 
-            // NEU: Vorhandenes Media-Objekt laden, um z.B. createdAt zu erhalten
+            //vorhandenes Media-Objekt laden, um z.B createdAt zu erhalten
             Media existingMedia = service.getMediaById(id);
             if (existingMedia == null) return HttpResponse.notFound();
 
             Media media = JsonUtil.fromJson(req.getBody(), Media.class);
             media.setId(id);
-            media.setCreatedAt(existingMedia.getCreatedAt()); // Datum aus DB übernehmen
+            media.setCreatedAt(existingMedia.getCreatedAt()); // Datum aus DB
 
             boolean ok = service.updateMedia(media, user.getId());
             if (!ok) return HttpResponse.forbidden(); // Gibt an, dass man nicht der Creator ist
@@ -112,9 +111,7 @@ public class MediaController {
         }
     }
 
-    /**
-     * Helper: Extrahieren des Users analog zum UserController
-     */
+     //Extrahieren des Users analog zum UserController
     private User authenticate(HttpRequest request) {
         String token = request.getToken();
         return tokenManager.getUserByToken(token);

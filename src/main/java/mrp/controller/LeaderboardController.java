@@ -16,7 +16,7 @@ public class LeaderboardController {
         this.userService = userService;
     }
 
-    // GET /api/leaderboard
+    //GET /api/leaderboard
     public HttpResponse getLeaderboard(HttpRequest req) {
         try {
             List<User> leaderboard = userService.getLeaderboard();

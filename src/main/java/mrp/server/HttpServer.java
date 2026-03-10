@@ -33,7 +33,7 @@ public class HttpServer {
                 // This blocks until a client connects
                 Socket clientSocket = serverSocket.accept();
 
-                // Handle the request in a separate thread (don't block the accept loop)
+                // Handle the request in a separate thread (dont block the accept loop)
                 threadPool.submit(() -> handleConnection(clientSocket));
             }
         } catch (IOException e) {
@@ -42,11 +42,11 @@ public class HttpServer {
     }
 
     private void handleConnection(Socket clientSocket) {
-        try (clientSocket) { // auto-close when done
+        try (clientSocket) { // auto-close
             InputStream input = clientSocket.getInputStream();
             OutputStream output = clientSocket.getOutputStream();
 
-            // 1. Parse the raw HTTP into our request object
+            // 1. Parse raw HTTP into our request object
             HttpRequest request = HttpRequest.parse(input);
             System.out.println(request.getMethod() + " " + request.getPath());
 
@@ -55,13 +55,13 @@ public class HttpServer {
             try {
                 response = router.route(request);
             } catch (Exception e) {
-                // Catch any unhandled exception → 500
+                // Catch any unhandled exception -> 500
                 System.err.println("Error handling request: " + e.getMessage());
                 e.printStackTrace();
                 response = HttpResponse.internalError("Internal server error");
             }
 
-            // 3. Send the response back over the wire
+            // 3. Send the response back
             String rawResponse = response.toRawString();
             output.write(rawResponse.getBytes(StandardCharsets.UTF_8));
             output.flush();

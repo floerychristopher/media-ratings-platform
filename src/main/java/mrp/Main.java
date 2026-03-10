@@ -17,30 +17,31 @@ import mrp.service.MediaService;
 
 public class Main {
     public static void main(String[] args) {
-        // --- Initialize infrastructure ---
+
+        // --- Initialize infrastructure (DB & Token) ---
         DatabaseManager db = DatabaseManager.getInstance();
         db.initializeSchema();
 
         TokenManager tokenManager = new TokenManager();
 
-        // --- Build the dependency chain ---
+        // --- Dependency injection setup ---
 
-        // 1. Zuerst Media instanziieren
+        // 1. Media
         MediaRepository mediaRepository = new MediaRepository(db);
         MediaService mediaService = new MediaService(mediaRepository);
         MediaController mediaController = new MediaController(mediaService, tokenManager);
 
-        // 2. Dann Rating instanziieren (MUSS vor dem UserController passieren!)
+        // 2. Rating
         RatingRepository ratingRepository = new RatingRepository(db);
         RatingService ratingService = new RatingService(ratingRepository, mediaRepository);
         RatingController ratingController = new RatingController(ratingService, tokenManager);
 
-        // 3. Dann User (hier den fertig gebauten mediaService und ratingService mitgeben!)
+        // 3. User (mediaService und ratingService mitgeben)
         UserRepository userRepository = new UserRepository(db);
         UserService userService = new UserService(userRepository, tokenManager);
         UserController userController = new UserController(userService, tokenManager, mediaService, ratingService);
 
-        // 4. Zuletzt das Leaderboard
+        // 4. Leaderboard
         LeaderboardController leaderboardController = new LeaderboardController(userService);
 
         // --- Set up routing ---
@@ -61,13 +62,13 @@ public class Main {
         router.addRoute("PUT", "/api/media/{id}", mediaController::update);
         router.addRoute("DELETE", "/api/media/{id}", mediaController::delete);
 
-        // Rating Endpoints
+        // Rating endpoints
         router.addRoute("POST", "/api/media/{mediaId}/rate", ratingController::rate);
         router.addRoute("PUT", "/api/ratings/{id}", ratingController::update);
         router.addRoute("POST", "/api/ratings/{id}/like", ratingController::like);
         router.addRoute("POST", "/api/ratings/{id}/confirm", ratingController::confirm);
 
-        // Favoriten-Routen
+        // Favourite endpoints
         router.addRoute("POST", "/api/media/{id}/favorite", mediaController::addFavorite);
         router.addRoute("DELETE", "/api/media/{id}/favorite", mediaController::removeFavorite);
         router.addRoute("GET", "/api/users/{username}/favorites", userController::getFavorites);
@@ -77,7 +78,7 @@ public class Main {
         router.addRoute("GET", "/api/users/{username}/ratings", userController::getRatingHistory);
 
         // --- Start server ---
-        HttpServer server = new HttpServer(9090, router); // Port auf 9090 wie bei dir eingestellt
+        HttpServer server = new HttpServer(9090, router);
         server.start();
     }
 }

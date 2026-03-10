@@ -21,7 +21,7 @@ public class RatingService {
             throw new IllegalArgumentException("Stars must be between 1 and 5");
         }
 
-        // Prüfen, ob das Medium existiert
+        // Prüfen, ob Medium existiert
         Media media = mediaRepo.getById(mediaId);
         if (media == null) {
             throw new IllegalArgumentException("Media not found");
@@ -36,7 +36,7 @@ public class RatingService {
         try {
             return ratingRepo.create(rating);
         } catch (SQLException e) {
-            // PostgreSQL wirft Fehler, wenn der User dieses Medium schon bewertet hat (UNIQUE Constraint)
+            // PostgreSQL wirft Fehler, wenn User dieses Medium schon bewertet hat (UNIQUE Constraint)
             throw new IllegalStateException("User has already rated this media");
         }
     }

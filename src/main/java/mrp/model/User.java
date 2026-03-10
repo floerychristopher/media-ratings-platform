@@ -12,7 +12,6 @@ public class User {
     private double averageScore;
     private String favoriteGenre;
 
-    // Default constructor (needed for Jackson deserialization)
     public User() {}
 
     public User(String username, String password) {

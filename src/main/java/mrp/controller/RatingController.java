@@ -28,7 +28,7 @@ public class RatingController {
             int mediaId = Integer.parseInt(req.getPathParam("mediaId"));
             Map body = JsonUtil.fromJson(req.getBody(), Map.class);
 
-            // JSON-Werte sicher extrahieren (können Integer oder String sein, je nach Parser)
+            // JSON-Werte extrahieren
             int stars = ((Number) body.get("stars")).intValue();
             String comment = (String) body.get("comment");
 
@@ -76,7 +76,7 @@ public class RatingController {
             boolean ok = ratingService.likeRating(ratingId, user.getId());
 
             if (!ok) {
-                // Wenn ok == false ist, existiert das Rating nicht oder der User hat schon geliked
+                // Wenn ok == false ist, existiert das Rating nicht oder User hat schon geliked
                 return HttpResponse.badRequest("Rating not found or already liked");
             }
 

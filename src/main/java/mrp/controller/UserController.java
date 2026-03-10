@@ -27,18 +27,18 @@ public class UserController {
 
     /**
      * POST /api/users/register
-     * Body: {"Username":"max", "Password":"secret"}
+     * Body: {"Username":"max", "Password":"password123"}
      */
     public HttpResponse register(HttpRequest request) {
         try {
-            // Parse JSON body into a map (flexible — we don't need a DTO class)
+            // Parse JSON body into map
             Map body = JsonUtil.fromJson(request.getBody(), Map.class);
             String username = (String) body.get("Username");
             String password = (String) body.get("Password");
 
             User user = userService.register(username, password);
 
-            // Don't send the password back!
+            // Dont send the pw back
             user.setPassword(null);
             return HttpResponse.created(JsonUtil.toJson(user));
 
@@ -53,7 +53,7 @@ public class UserController {
 
     /**
      * POST /api/users/login
-     * Body: {"Username":"max", "Password":"secret"}
+     * Body: {"Username":"max", "Password":"passwort123"}
      * Returns: token string
      */
     public HttpResponse login(HttpRequest request) {
@@ -75,7 +75,7 @@ public class UserController {
 
     /**
      * GET /api/users/{username}/profile
-     * Requires auth.
+     * Requires authentication
      */
     public HttpResponse getProfile(HttpRequest request) {
         try {
@@ -100,7 +100,7 @@ public class UserController {
     /**
      * PUT /api/users/{username}/profile
      * Body: {"Bio":"Hello, I love movies!"}
-     * Requires auth. Only own profile.
+     * Requires authentication, only your own profile
      */
     public HttpResponse updateProfile(HttpRequest request) {
         try {
@@ -124,10 +124,7 @@ public class UserController {
         }
     }
 
-    /**
-     * Helper: Extracts the token from the request and looks up the user.
-     * Returns null if not authenticated.
-     */
+    // Helper: Extracts token from the request and looks up user (return null if not authenticated)
     private User authenticate(HttpRequest request) {
         String token = request.getToken();
         return tokenManager.getUserByToken(token);
@@ -142,10 +139,10 @@ public class UserController {
             if (authUser == null) return HttpResponse.unauthorized();
 
             String username = req.getPathParam("username");
-            // Prüfen ob der Ziel-Nutzer existiert
+            // Check ob user existiert
             User targetUser = userService.getProfile(username);
 
-            // Favoriten über den MediaService laden!
+            // Favoriten über MediaService laden
             List<Media> favorites = mediaService.getFavoritesByUserId(targetUser.getId());
 
             return HttpResponse.ok(JsonUtil.toJson(favorites));

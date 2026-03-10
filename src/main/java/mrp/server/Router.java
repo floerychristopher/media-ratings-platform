@@ -8,11 +8,9 @@ import java.util.function.Function;
 
 public class Router {
 
-    /**
-     * A route is: METHOD + pattern + handler function
-     * Pattern example: "/api/media/{id}"
-     * The handler takes an HttpRequest and returns an HttpResponse.
-     */
+     // Route: METHOD + pattern + handler function
+     // Pattern: "/api/media/{id}"
+     // Handler takes HttpRequest and returns HttpResponse
     private record Route(
             String method,
             String pattern,           // e.g. "/api/media/{id}"
@@ -22,11 +20,7 @@ public class Router {
 
     private final List<Route> routes = new ArrayList<>();
 
-    /**
-     * Register a route. Usage:
-     *   router.addRoute("GET", "/api/media/{id}", mediaController::getById);
-     *   router.addRoute("POST", "/api/users/login", userController::login);
-     */
+    // Register a route
     public void addRoute(String method, String pattern, Function<HttpRequest, HttpResponse> handler) {
         // Split pattern into parts for matching
         // "/api/media/{id}" → ["api", "media", "{id}"]
@@ -34,17 +28,7 @@ public class Router {
         routes.add(new Route(method.toUpperCase(), pattern, parts, handler));
     }
 
-    /**
-     * Finds the matching route for a request.
-     *
-     * How matching works:
-     *   Request path: /api/media/42
-     *   Pattern:      /api/media/{id}
-     *
-     *   "api" == "api"       ✓ literal match
-     *   "media" == "media"   ✓ literal match
-     *   "42" vs "{id}"       ✓ wildcard match → pathParams["id"] = "42"
-     */
+    // Finds matching route for a request
     public HttpResponse route(HttpRequest request) {
         String[] requestParts = request.getPath().substring(1).split("/");
 
@@ -68,7 +52,7 @@ public class Router {
                     String paramName = patternPart.substring(1, patternPart.length() - 1);
                     pathParams.put(paramName, requestPart);
                 } else if (!patternPart.equals(requestPart)) {
-                    // Literal part doesn't match
+                    // Literal part doesnt match
                     matches = false;
                     break;
                 }
@@ -77,7 +61,7 @@ public class Router {
             if (matches) {
                 // Inject extracted path params into the request
                 request.setPathParams(pathParams);
-                // Handler (Lambda Funktion) der Route die gematcht hat wird aufgerufen und request auf diese Funktion applied damit?
+                // Führe die gespeicherte Funktion (Handler) mit request als Übergabeparameter aus
                 return route.handler().apply(request);
             }
         }

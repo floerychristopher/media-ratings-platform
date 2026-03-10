@@ -17,10 +17,8 @@ public class UserService {
         this.tokenManager = tokenManager;
     }
 
-    /**
-     * Registers a new user.
-     * Returns the created user (without password), or throws if validation fails.
-     */
+     //Registers user
+     //Returns created user (without password)
     public User register(String username, String password) throws Exception {
         // --- Validation ---
         if (username == null || username.isBlank()) {
@@ -42,10 +40,7 @@ public class UserService {
         return userRepository.create(user);
     }
 
-    /**
-     * Logs in a user.
-     * Returns the token string, or throws if credentials are wrong.
-     */
+    // Login, returns token string
     public String login(String username, String password) throws Exception {
         if (username == null || password == null) {
             throw new IllegalArgumentException("Username and password required");
@@ -59,24 +54,19 @@ public class UserService {
         return tokenManager.generateToken(user);
     }
 
-    /**
-     * Gets a user's profile info.
-     */
+    // get profile information
     public User getProfile(String username) throws SQLException {
         User user = userRepository.findByUsername(username);
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
-        // NEU: Lade die Statistiken in das User-Objekt, bevor es zurückgegeben wird!
         userRepository.loadUserStatistics(user);
         return user;
     }
 
-    /**
-     * Updates profile. Only the user themselves can do this.
-     */
+    // Update (only the user itself)
     public User updateProfile(User authenticatedUser, String username, String bio) throws Exception {
-        // Check: you can only edit YOUR profile
+        // Check that user can only edit own profile
         if (!authenticatedUser.getUsername().equals(username)) {
             throw new SecurityException("Cannot edit another user's profile");
         }

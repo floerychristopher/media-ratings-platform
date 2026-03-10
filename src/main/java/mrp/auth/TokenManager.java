@@ -5,32 +5,23 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.Map;
 
 public class TokenManager {
-    // token string → User who owns it
-    // ConcurrentHashMap because multiple threads will access this simultaneously
+    // ConcurrentHashMap for thread safety
     private final Map<String, User> tokenStore = new ConcurrentHashMap<>();
 
-    /**
-     * Generates a token for a user and stores it.
-     * Per the spec: "mustermann-mrpToken"
-     */
+
+    // Generates a user token and stores it
     public String generateToken(User user) {
         String token = user.getUsername() + "-mrpToken";
         tokenStore.put(token, user);
         return token;
     }
 
-    /**
-     * Looks up who owns this token.
-     * Returns null if the token is invalid/expired.
-     */
     public User getUserByToken(String token) {
         if (token == null) return null;
         return tokenStore.get(token);
     }
 
-    /**
-     * Removes a token (for logout).
-     */
+    // WIP: Logout
     public void removeToken(String token) {
         tokenStore.remove(token);
     }

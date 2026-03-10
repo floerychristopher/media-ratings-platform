@@ -9,7 +9,7 @@ public class Media {
     private String description;
     private String mediaType;
     private int releaseYear;
-    private List<String> genres;  // Angepasst an Postman: Liste statt String
+    private List<String> genres;
     private int ageRestriction;
     private int createdBy;
     private LocalDateTime createdAt;

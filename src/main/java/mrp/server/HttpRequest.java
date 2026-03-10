@@ -22,15 +22,7 @@ public class HttpRequest {
         this.pathParams = new HashMap<>();
     }
 
-    /**
-     * Reads raw bytes from the socket and parses them into this object.
-     *
-     * HTTP is line-based:
-     *   Line 1:  METHOD /path HTTP/1.1
-     *   Lines 2+: Header-Name: Header-Value
-     *   Empty line
-     *   Body (if Content-Length > 0)
-     */
+    // Reads raw bytes from socket and parses them into this object
     public static HttpRequest parse(InputStream inputStream) throws IOException {
         HttpRequest request = new HttpRequest();
         // Byte-Stream -> Char-Stream -> buffered Char-Stream (Buffered Reader bietet readLine())
@@ -69,7 +61,7 @@ public class HttpRequest {
         }
 
         // --- 2. Parse headers ---
-        // Headers come one per line until we hit an empty line
+        // Headers: one per line until empty line is hit
         String headerLine;
         while ((headerLine = reader.readLine()) != null && !headerLine.isEmpty()) {
             int colonIdx = headerLine.indexOf(':');
@@ -90,7 +82,7 @@ public class HttpRequest {
             if (contentLength > 0) {
                 char[] bodyChars = new char[contentLength];
                 int totalRead = 0;
-                // We must read exactly contentLength chars — may take multiple reads
+                // must read exactly contentLength chars, may take multiple reads
                 while (totalRead < contentLength) {
                     int read = reader.read(bodyChars, totalRead, contentLength - totalRead);
                     if (read == -1) break;
@@ -121,7 +113,7 @@ public class HttpRequest {
     // --- Convenience methods ---
 
     public String getToken() {
-        // "Bearer mustermann-mrpToken" → "mustermann-mrpToken"
+        // "mustermann-mrpToken" -> "mustermann-mrpToken"
         String auth = headers.get("authorization");
         if (auth != null && auth.startsWith("Bearer ")) {
             return auth.substring(7).trim();
@@ -129,7 +121,7 @@ public class HttpRequest {
         return null;
     }
 
-    // Getters
+    // Getters & setters
     public String getMethod() { return method; }
     public String getPath() { return path; }
     public Map<String, String> getHeaders() { return headers; }

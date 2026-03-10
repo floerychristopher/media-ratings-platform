@@ -14,7 +14,7 @@ public class DatabaseManager {
 
     private DatabaseManager() {}
 
-    // Singleton (one manager for the whole app)
+    // Singleton (one db instance for whole application)
     public static synchronized DatabaseManager getInstance() {
         if (instance == null) {
             instance = new DatabaseManager();
@@ -27,7 +27,7 @@ public class DatabaseManager {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 
-    // To be called once at startup
+    // Called once at startup
     public void initializeSchema() {
         String sql = """
             CREATE TABLE IF NOT EXISTS users (

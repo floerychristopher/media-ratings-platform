@@ -12,10 +12,6 @@ public class UserRepository {
         this.db = db;
     }
 
-    /**
-     * Inserts a new user into the database.
-     * Returns the user with the generated ID set, or null if the username already exists.
-     */
     public User create(User user) throws SQLException {
         String sql = "INSERT INTO users (username, password) VALUES (?, ?) RETURNING id, created_at";
 
@@ -33,13 +29,9 @@ public class UserRepository {
             }
             return null;
         }
-        // If username already exists, PostgreSQL throws a unique constraint violation.
-        // We let that SQLException bubble up — the service layer catches it.
+        // If username exists: service layer catches SQLException later
     }
 
-    /**
-     * Finds a user by username. Returns null if not found.
-     */
     public User findByUsername(String username) throws SQLException {
         String sql = "SELECT * FROM users WHERE username = ?";
 
@@ -56,9 +48,6 @@ public class UserRepository {
         }
     }
 
-    /**
-     * Find user by ID.
-     */
     public User findById(int id) throws SQLException {
         String sql = "SELECT * FROM users WHERE id = ?";
 
@@ -75,9 +64,7 @@ public class UserRepository {
         }
     }
 
-    /**
-     * Updates a user's profile fields (bio for now).
-     */
+    // Updates user bio
     public void update(User user) throws SQLException {
         String sql = "UPDATE users SET bio = ? WHERE id = ?";
 
@@ -90,10 +77,8 @@ public class UserRepository {
         }
     }
 
-    /**
-     * Converts a ResultSet row into a User object.
-     * This is called from every query — keeps the mapping in one place.
-     */
+     //Converts a ResultSet row into a User object
+     //is called from every query, keeps mapping in one place
     private User mapRow(ResultSet rs) throws SQLException {
         User user = new User();
         user.setId(rs.getInt("id"));
@@ -104,10 +89,8 @@ public class UserRepository {
         return user;
     }
 
-    // Füge diese Methode unten im UserRepository hinzu:
-
     public java.util.List<User> getLeaderboard() throws SQLException {
-        // LEFT JOIN sorgt dafür, dass auch Nutzer mit 0 Ratings im Leaderboard auftauchen
+        // LEFT JOIN damit auch User mit 0 Ratings im auftauchen
         String sql = "SELECT u.id, u.username, u.bio, u.created_at, " +
                 "COUNT(r.id) AS rating_count " +
                 "FROM users u " +
@@ -127,7 +110,6 @@ public class UserRepository {
                 user.setBio(rs.getString("bio"));
                 user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                 user.setRatingCount(rs.getInt("rating_count"));
-                // user.setPassword() wird absichtlich weggelassen!
 
                 leaderboard.add(user);
             }
@@ -135,9 +117,6 @@ public class UserRepository {
         return leaderboard;
     }
 
-    /**
-     * Lädt die Statistiken (Anzahl, Durchschnitt, Lieblingsgenre) für einen User.
-     */
     public void loadUserStatistics(User user) throws SQLException {
         // 1. Anzahl und Durchschnitt berechnen
         String sqlStats = "SELECT COUNT(id) AS total, COALESCE(AVG(stars), 0) AS avg_score FROM ratings WHERE user_id = ?";
@@ -151,7 +130,7 @@ public class UserRepository {
             }
         }
 
-        /// 2. Lieblingsgenre berechnen (Das am häufigsten bewertete Genre)
+        // 2. Lieblingsgenre berechnen (am häufigsten bewertete Genre)
         String sqlGenre = "SELECT trim(t.genre_name) AS genre, COUNT(*) as count " +
                 "FROM ratings r " +
                 "JOIN media m ON r.media_id = m.id " +
@@ -166,7 +145,7 @@ public class UserRepository {
             if (rs.next()) {
                 user.setFavoriteGenre(rs.getString("genre"));
             } else {
-                user.setFavoriteGenre("-"); // Falls er noch nichts bewertet hat
+                user.setFavoriteGenre("-"); // Falls noch nichts bewertet wurde
             }
         }
     }

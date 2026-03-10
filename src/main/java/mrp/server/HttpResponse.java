@@ -14,11 +14,8 @@ public class HttpResponse {
         this.statusMessage = getDefaultMessage(statusCode);
         this.headers = new HashMap<>();
         this.body = "";
-        // Default to JSON — this is a REST API after all
         this.headers.put("Content-Type", "application/json");
     }
-
-    // --- Fluent builder methods (makes code readable) ---
 
     public HttpResponse body(String body) {
         this.body = body;
@@ -30,23 +27,14 @@ public class HttpResponse {
         return this;
     }
 
-    /**
-     * Converts this response to the raw HTTP string that goes over the wire.
-     *
-     * Example output:
-     *   HTTP/1.1 200 OK
-     *   Content-Type: application/json
-     *   Content-Length: 27
-     *
-     *   {"message":"Hello World"}
-     */
+    // Converts response to raw HTTP string
     public String toRawString() {
         StringBuilder sb = new StringBuilder();
 
         // Status line
         sb.append("HTTP/1.1 ").append(statusCode).append(" ").append(statusMessage).append("\r\n");
 
-        // Content-Length must match the body bytes (not chars!) for proper HTTP
+        // Content-Length must match the body bytes
         byte[] bodyBytes = body.getBytes(java.nio.charset.StandardCharsets.UTF_8);
         headers.put("Content-Length", String.valueOf(bodyBytes.length));
 
@@ -55,7 +43,7 @@ public class HttpResponse {
             sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\r\n");
         }
 
-        // Empty line separates headers from body
+        //separate headers from body (empty line)
         sb.append("\r\n");
 
         // Body
@@ -64,7 +52,7 @@ public class HttpResponse {
         return sb.toString();
     }
 
-    // --- Factory methods for common responses ---
+    // --- methods for common responses ---
 
     public static HttpResponse ok(String jsonBody) {
         return new HttpResponse(200).body(jsonBody);
