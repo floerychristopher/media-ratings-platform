@@ -37,6 +37,8 @@ public class Main {
         RatingService ratingService = new RatingService(ratingRepository, mediaRepository);
         RatingController ratingController = new RatingController(ratingService, tokenManager);
 
+        mrp.controller.LeaderboardController leaderboardController = new mrp.controller.LeaderboardController(userService);
+
         // --- Set up routing ---
         Router router = new Router();
 
@@ -65,6 +67,8 @@ public class Main {
         router.addRoute("POST", "/api/media/{id}/favorite", mediaController::addFavorite);
         router.addRoute("DELETE", "/api/media/{id}/favorite", mediaController::removeFavorite);
         router.addRoute("GET", "/api/users/{username}/favorites", userController::getFavorites);
+
+        router.addRoute("GET", "/api/leaderboard", leaderboardController::getLeaderboard);
 
         // --- Start server ---
         HttpServer server = new HttpServer(9090, router); // Port auf 8080 angepasst, wie in den Tests
