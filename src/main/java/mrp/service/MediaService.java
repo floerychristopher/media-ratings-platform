@@ -33,4 +33,18 @@ public class MediaService {
     public boolean deleteMedia(int mediaId, int requestingUserId) throws SQLException {
         return repo.delete(mediaId, requestingUserId);
     }
+
+    // --- Favoriten ---
+
+    public boolean addFavorite(int mediaId, int userId) {
+        return repo.addFavorite(mediaId, userId);
+    }
+
+    public boolean removeFavorite(int mediaId, int userId) {
+        return repo.removeFavorite(mediaId, userId);
+    }
+
+    public List<Media> getFavoritesByUserId(int userId) throws SQLException {
+        return repo.getFavoritesByUserId(userId);
+    }
 }
