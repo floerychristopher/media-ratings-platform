@@ -8,6 +8,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class MediaRepository {
     private final DatabaseManager db;
@@ -160,6 +161,82 @@ public class MediaRepository {
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
                 list.add(mapRow(rs)); // mapRow existiert hier schon praktischerweise!
+            }
+        }
+        return list;
+    }
+
+    // --- Suche und Filter ---
+
+    public List<Media> searchAndFilter(Map<String, String> params) throws SQLException {
+        // Grund-Query mit JOIN für den Durchschnittsscore
+        StringBuilder sql = new StringBuilder(
+                "SELECT m.*, COALESCE(AVG(r.stars), 0) AS avg_score " +
+                        "FROM media m " +
+                        "LEFT JOIN ratings r ON m.id = r.media_id " +
+                        "WHERE 1=1 " // 1=1 ist ein Trick, damit wir alle folgenden Filter mit "AND ..." anhängen können
+        );
+
+        List<Object> values = new ArrayList<>();
+
+        // 1. Filter (WHERE)
+        if (params.containsKey("title") && !params.get("title").isBlank()) {
+            sql.append("AND m.title ILIKE ? "); // ILIKE ignoriert Groß-/Kleinschreibung (Partial Matching)
+            values.add("%" + params.get("title") + "%");
+        }
+        if (params.containsKey("genre") && !params.get("genre").isBlank()) {
+            sql.append("AND m.genre ILIKE ? ");
+            values.add("%" + params.get("genre") + "%");
+        }
+        if (params.containsKey("mediaType") && !params.get("mediaType").isBlank()) {
+            sql.append("AND m.media_type = ? ");
+            values.add(params.get("mediaType"));
+        }
+        if (params.containsKey("releaseYear") && !params.get("releaseYear").isBlank()) {
+            sql.append("AND m.release_year = ? ");
+            values.add(Integer.parseInt(params.get("releaseYear")));
+        }
+        if (params.containsKey("ageRestriction") && !params.get("ageRestriction").isBlank()) {
+            sql.append("AND m.age_restriction <= ? ");
+            values.add(Integer.parseInt(params.get("ageRestriction")));
+        }
+
+        // 2. Gruppierung (notwendig wegen des JOINs und der AVG-Funktion)
+        sql.append("GROUP BY m.id ");
+
+        // 3. Rating-Filter (HAVING)
+        if (params.containsKey("rating") && !params.get("rating").isBlank()) {
+            sql.append("HAVING COALESCE(AVG(r.stars), 0) >= ? ");
+            values.add(Double.parseDouble(params.get("rating")));
+        }
+
+        // 4. Sortierung (ORDER BY)
+        String sortBy = params.getOrDefault("sortBy", "id");
+        if (sortBy.equals("title")) {
+            sql.append("ORDER BY m.title ASC ");
+        } else if (sortBy.equals("year")) {
+            sql.append("ORDER BY m.release_year DESC ");
+        } else if (sortBy.equals("score")) {
+            sql.append("ORDER BY avg_score DESC ");
+        } else {
+            sql.append("ORDER BY m.id DESC "); // Standard-Sortierung
+        }
+
+        // --- Ausführung ---
+        List<Media> list = new ArrayList<>();
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+
+            // Werte dynamisch in das Statement einsetzen
+            for (int i = 0; i < values.size(); i++) {
+                stmt.setObject(i + 1, values.get(i));
+            }
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                Media m = mapRow(rs); // Bisheriges Mapping nutzen
+                m.setAverageScore(rs.getDouble("avg_score")); // Den berechneten Score ergänzen
+                list.add(m);
             }
         }
         return list;
