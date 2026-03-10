@@ -2,6 +2,7 @@ package mrp.controller;
 
 import mrp.auth.TokenManager;
 import mrp.model.Media;
+import mrp.model.Rating;
 import mrp.model.User;
 import mrp.server.HttpRequest;
 import mrp.server.HttpResponse;
@@ -148,6 +149,28 @@ public class UserController {
             List<Media> favorites = mediaService.getFavoritesByUserId(targetUser.getId());
 
             return HttpResponse.ok(JsonUtil.toJson(favorites));
+
+        } catch (IllegalArgumentException e) {
+            return HttpResponse.notFound();
+        } catch (Exception e) {
+            return HttpResponse.internalError(e.getMessage());
+        }
+    }
+
+    /**
+     * GET /api/users/{username}/ratings
+     */
+    public HttpResponse getRatingHistory(HttpRequest req) {
+        try {
+            User authUser = authenticate(req);
+            if (authUser == null) return HttpResponse.unauthorized();
+
+            String username = req.getPathParam("username");
+            // Profil laden (prüft ob User existiert)
+            User targetUser = userService.getProfile(username);
+
+            java.util.List<Rating> history = ratingService.getRatingsByUserId(targetUser.getId());
+            return HttpResponse.ok(JsonUtil.toJson(history));
 
         } catch (IllegalArgumentException e) {
             return HttpResponse.notFound();
