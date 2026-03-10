@@ -134,4 +134,40 @@ public class UserRepository {
         }
         return leaderboard;
     }
+
+    /**
+     * Lädt die Statistiken (Anzahl, Durchschnitt, Lieblingsgenre) für einen User.
+     */
+    public void loadUserStatistics(User user) throws SQLException {
+        // 1. Anzahl und Durchschnitt berechnen
+        String sqlStats = "SELECT COUNT(id) AS total, COALESCE(AVG(stars), 0) AS avg_score FROM ratings WHERE user_id = ?";
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sqlStats)) {
+            stmt.setInt(1, user.getId());
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                user.setRatingCount(rs.getInt("total"));
+                user.setAverageScore(rs.getDouble("avg_score"));
+            }
+        }
+
+        // 2. Lieblingsgenre berechnen (Das am häufigsten bewertete Genre)
+        String sqlGenre = "SELECT trim(unnested_genre) AS genre, COUNT(*) as count " +
+                "FROM ratings r " +
+                "JOIN media m ON r.media_id = m.id " +
+                "CROSS JOIN LATERAL unnest(string_to_array(m.genre, ',')) AS unnested_genre " +
+                "WHERE r.user_id = ? AND unnested_genre != '' " +
+                "GROUP BY genre " +
+                "ORDER BY count DESC LIMIT 1";
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sqlGenre)) {
+            stmt.setInt(1, user.getId());
+            ResultSet rs = stmt.executeQuery();
+            if (rs.next()) {
+                user.setFavoriteGenre(rs.getString("genre"));
+            } else {
+                user.setFavoriteGenre("-"); // Falls er noch nichts bewertet hat
+            }
+        }
+    }
 }
