@@ -151,13 +151,13 @@ public class UserRepository {
             }
         }
 
-        // 2. Lieblingsgenre berechnen (Das am häufigsten bewertete Genre)
-        String sqlGenre = "SELECT trim(unnested_genre) AS genre, COUNT(*) as count " +
+        /// 2. Lieblingsgenre berechnen (Das am häufigsten bewertete Genre)
+        String sqlGenre = "SELECT trim(t.genre_name) AS genre, COUNT(*) as count " +
                 "FROM ratings r " +
                 "JOIN media m ON r.media_id = m.id " +
-                "CROSS JOIN LATERAL unnest(string_to_array(m.genre, ',')) AS unnested_genre " +
-                "WHERE r.user_id = ? AND unnested_genre != '' " +
-                "GROUP BY genre " +
+                "CROSS JOIN LATERAL unnest(string_to_array(m.genre, ',')) AS t(genre_name) " +
+                "WHERE r.user_id = ? AND trim(t.genre_name) != '' " +
+                "GROUP BY trim(t.genre_name) " +
                 "ORDER BY count DESC LIMIT 1";
         try (Connection conn = db.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sqlGenre)) {
