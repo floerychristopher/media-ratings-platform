@@ -103,4 +103,35 @@ public class UserRepository {
         user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
         return user;
     }
+
+    // Füge diese Methode unten im UserRepository hinzu:
+
+    public java.util.List<User> getLeaderboard() throws SQLException {
+        // LEFT JOIN sorgt dafür, dass auch Nutzer mit 0 Ratings im Leaderboard auftauchen
+        String sql = "SELECT u.id, u.username, u.bio, u.created_at, " +
+                "COUNT(r.id) AS rating_count " +
+                "FROM users u " +
+                "LEFT JOIN ratings r ON u.id = r.user_id " +
+                "GROUP BY u.id " +
+                "ORDER BY rating_count DESC, u.username ASC";
+
+        java.util.List<User> leaderboard = new java.util.ArrayList<>();
+        try (Connection conn = db.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+
+            ResultSet rs = stmt.executeQuery();
+            while (rs.next()) {
+                User user = new User();
+                user.setId(rs.getInt("id"));
+                user.setUsername(rs.getString("username"));
+                user.setBio(rs.getString("bio"));
+                user.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
+                user.setRatingCount(rs.getInt("rating_count"));
+                // user.setPassword() wird absichtlich weggelassen!
+
+                leaderboard.add(user);
+            }
+        }
+        return leaderboard;
+    }
 }
