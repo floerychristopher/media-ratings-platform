@@ -112,4 +112,32 @@ public class MediaController {
         String token = request.getToken();
         return tokenManager.getUserByToken(token);
     }
+
+    // --- Favoriten ---
+
+    public HttpResponse addFavorite(HttpRequest req) {
+        User user = authenticate(req);
+        if (user == null) return HttpResponse.unauthorized();
+
+        try {
+            int mediaId = Integer.parseInt(req.getPathParam("id"));
+            service.addFavorite(mediaId, user.getId());
+            return HttpResponse.ok("{\"message\":\"Added to favorites\"}");
+        } catch (Exception e) {
+            return HttpResponse.badRequest("Invalid ID");
+        }
+    }
+
+    public HttpResponse removeFavorite(HttpRequest req) {
+        User user = authenticate(req);
+        if (user == null) return HttpResponse.unauthorized();
+
+        try {
+            int mediaId = Integer.parseInt(req.getPathParam("id"));
+            service.removeFavorite(mediaId, user.getId());
+            return HttpResponse.ok("{\"message\":\"Removed from favorites\"}");
+        } catch (Exception e) {
+            return HttpResponse.badRequest("Invalid ID");
+        }
+    }
 }
