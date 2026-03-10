@@ -1,21 +1,25 @@
 package mrp.controller;
 
 import mrp.auth.TokenManager;
+import mrp.model.Media;
 import mrp.model.User;
 import mrp.server.HttpRequest;
 import mrp.server.HttpResponse;
 import mrp.service.UserService;
 import mrp.util.JsonUtil;
 
+import java.util.List;
 import java.util.Map;
 
 public class UserController {
     private final UserService userService;
     private final TokenManager tokenManager;
+    private final mrp.service.MediaService mediaService;
 
-    public UserController(UserService userService, TokenManager tokenManager) {
+    public UserController(UserService userService, TokenManager tokenManager, mrp.service.MediaService mediaService) {
         this.userService = userService;
         this.tokenManager = tokenManager;
+        this.mediaService = mediaService;
     }
 
     /**
@@ -124,5 +128,29 @@ public class UserController {
     private User authenticate(HttpRequest request) {
         String token = request.getToken();
         return tokenManager.getUserByToken(token);
+    }
+
+    /**
+     * GET /api/users/{username}/favorites
+     */
+    public HttpResponse getFavorites(HttpRequest req) {
+        try {
+            User authUser = authenticate(req);
+            if (authUser == null) return HttpResponse.unauthorized();
+
+            String username = req.getPathParam("username");
+            // Prüfen ob der Ziel-Nutzer existiert
+            User targetUser = userService.getProfile(username);
+
+            // Favoriten über den MediaService laden!
+            List<Media> favorites = mediaService.getFavoritesByUserId(targetUser.getId());
+
+            return HttpResponse.ok(JsonUtil.toJson(favorites));
+
+        } catch (IllegalArgumentException e) {
+            return HttpResponse.notFound();
+        } catch (Exception e) {
+            return HttpResponse.internalError(e.getMessage());
+        }
     }
 }
