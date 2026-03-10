@@ -11,6 +11,7 @@ public class User {
     private int ratingCount;
     private double averageScore;
     private String favoriteGenre;
+    private String email;
 
     public User() {}
 
@@ -43,4 +44,7 @@ public class User {
 
     public String getFavoriteGenre() { return favoriteGenre; }
     public void setFavoriteGenre(String favoriteGenre) { this.favoriteGenre = favoriteGenre; }
+
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
 }
