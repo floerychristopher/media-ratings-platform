@@ -134,7 +134,7 @@ public class MediaRepository {
             stmt.setInt(2, mediaId);
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
-            // Ignorieren, wenn es schon in den Favoriten ist (Primary Key)
+            // Ignorieren, wenn es schon in Favoriten ist (Primary Key)
             return false;
         }
     }
@@ -160,7 +160,7 @@ public class MediaRepository {
             stmt.setInt(1, userId);
             ResultSet rs = stmt.executeQuery();
             while (rs.next()) {
-                list.add(mapRow(rs)); // mapRow existiert hier schon praktischerweise!
+                list.add(mapRow(rs));
             }
         }
         return list;

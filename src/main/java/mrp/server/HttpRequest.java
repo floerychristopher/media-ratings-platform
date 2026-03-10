@@ -34,7 +34,7 @@ public class HttpRequest {
             throw new IOException("Empty request");
         }
 
-        // "POST /api/users/login HTTP/1.1" → ["POST", "/api/users/login", "HTTP/1.1"]
+        // "POST /api/users/login HTTP/1.1" -> ["POST", "/api/users/login", "HTTP/1.1"]
         String[] parts = requestLine.split(" ");
         if (parts.length < 2) {
             throw new IOException("Malformed request line: " + requestLine);
@@ -43,7 +43,7 @@ public class HttpRequest {
         // Save HTTP method in upper case (GET, POST)
         request.method = parts[0].toUpperCase();
 
-        // Split path from query string: "/api/media?genre=action" → path + query
+        // Split path from query string: "/api/media?genre=action" -> path + query
         String fullPath = parts[1];
         if (fullPath.contains("?")) {
             // Position von '?'
@@ -110,10 +110,7 @@ public class HttpRequest {
         }
     }
 
-    // --- Convenience methods ---
-
     public String getToken() {
-        // "mustermann-mrpToken" -> "mustermann-mrpToken"
         String auth = headers.get("authorization");
         if (auth != null && auth.startsWith("Bearer ")) {
             return auth.substring(7).trim();

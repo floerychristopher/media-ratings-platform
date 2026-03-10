@@ -23,7 +23,7 @@ public class Router {
     // Register a route
     public void addRoute(String method, String pattern, Function<HttpRequest, HttpResponse> handler) {
         // Split pattern into parts for matching
-        // "/api/media/{id}" → ["api", "media", "{id}"]
+        // "/api/media/{id}" -> ["api", "media", "{id}"]
         String[] parts = pattern.substring(1).split("/"); // skip leading '/'
         routes.add(new Route(method.toUpperCase(), pattern, parts, handler));
     }
