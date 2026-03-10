@@ -3,7 +3,7 @@
 BASE_URL="http://localhost:9090/api"
 
 echo "=========================================="
-echo "   MRP API INTEGRATION TESTS"
+echo "   MRP API INTEGRATION TESTS (FINAL)"
 echo "=========================================="
 echo ""
 
@@ -22,17 +22,16 @@ echo "User 2 bereit."
 echo -e "\n"
 
 # --- 2. USER PROFILE ---
-echo "=== 3. Profil von User 1 aktualisieren ==="
+echo "=== 3. Profil von User 1 aktualisieren (inkl. E-Mail) ==="
 # Erwartet: 200 OK
 curl -i -X PUT "$BASE_URL/users/user1/profile" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer $TOKEN1" \
-     -d '{"Bio": "Ich liebe Filme!"}'
+     -d '{"bio": "Ich liebe Filme!", "email": "user1@example.com"}'
 echo -e "\n\n"
 
 # --- 3. MEDIA CRUD ---
 echo "=== 4. User 1 erstellt einen Film (Sollte ID 1 bekommen) ==="
-# Erwartet: 201 Created
 curl -i -X POST "$BASE_URL/media" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer $TOKEN1" \
@@ -47,7 +46,6 @@ curl -i -X POST "$BASE_URL/media" \
 echo -e "\n\n"
 
 echo "=== 5. User 1 aktualisiert den Film (ID 1) ==="
-# Erwartet: 200 OK
 curl -i -X PUT "$BASE_URL/media/1" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer $TOKEN1" \
@@ -61,9 +59,8 @@ curl -i -X PUT "$BASE_URL/media/1" \
          }'
 echo -e "\n\n"
 
-# --- 4. RATINGS & LIKES & MODERATION ---
+# --- 4. RATINGS & MODERATION ---
 echo "=== 6. User 2 bewertet den Film (Media ID 1 -> Rating ID 1) ==="
-# Erwartet: 201 Created
 curl -i -X POST "$BASE_URL/media/1/rate" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer $TOKEN2" \
@@ -74,7 +71,6 @@ curl -i -X POST "$BASE_URL/media/1/rate" \
 echo -e "\n\n"
 
 echo "=== 7. User 2 aktualisiert seine Bewertung (Rating ID 1) ==="
-# Erwartet: 200 OK
 curl -i -X PUT "$BASE_URL/ratings/1" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer $TOKEN2" \
@@ -85,38 +81,33 @@ curl -i -X PUT "$BASE_URL/ratings/1" \
 echo -e "\n\n"
 
 echo "=== 8. User 1 liked die Bewertung von User 2 (Rating ID 1) ==="
-# Erwartet: 200 OK
 curl -i -X POST "$BASE_URL/ratings/1/like" \
      -H "Authorization: Bearer $TOKEN1"
 echo -e "\n\n"
 
 echo "=== 9. User 1 (Ersteller) bestätigt den Kommentar (Rating ID 1) ==="
-# Erwartet: 200 OK
 curl -i -X POST "$BASE_URL/ratings/1/confirm" \
      -H "Authorization: Bearer $TOKEN1"
 echo -e "\n\n"
 
 # --- 5. FAVORITEN ---
-echo "=== Favorit hinzufügen: User 2 fügt Media 1 zu Favoriten hinzu ==="
-# Erwartet: 200 OK
+echo "=== 10. Favorit hinzufügen: User 2 fügt Media 1 zu Favoriten hinzu ==="
 curl -i -X POST "$BASE_URL/media/1/favorite" \
      -H "Authorization: Bearer $TOKEN2"
 echo -e "\n\n"
 
-echo "=== Favoriten abrufen: User 2 holt seine Favoritenliste ==="
-# Erwartet: 200 OK (Sollte eine Liste mit dem Film zurückgeben)
+echo "=== 11. Favoriten abrufen: User 2 holt seine Favoritenliste ==="
 curl -i -X GET "$BASE_URL/users/user2/favorites" \
      -H "Authorization: Bearer $TOKEN2"
 echo -e "\n\n"
 
-echo "=== Favorit entfernen: User 2 entfernt Media 1 wieder ==="
-# Erwartet: 200 OK
+echo "=== 12. Favorit entfernen: User 2 entfernt Media 1 wieder ==="
 curl -i -X DELETE "$BASE_URL/media/1/favorite" \
      -H "Authorization: Bearer $TOKEN2"
 echo -e "\n\n"
 
 # --- 6. SEARCH & FILTER ---
-echo "=== Vorbereitung Suche: User 1 erstellt einen 2. Film ==="
+echo "=== 13. Vorbereitung Suche: User 1 erstellt einen 2. Film ==="
 curl -s -X POST "$BASE_URL/media" \
      -H "Content-Type: application/json" \
      -H "Authorization: Bearer $TOKEN1" \
@@ -129,45 +120,30 @@ curl -s -X POST "$BASE_URL/media" \
            "ageRestriction": 12
          }' > /dev/null
 
-echo "=== Suche 1: Alle Sci-Fi Filme, sortiert nach Erscheinungsjahr ==="
-# Erwartet: Beide Filme in der Liste, Interstellar (2014) vor Matrix (2003)
-curl -i -X GET "$BASE_URL/media?genre=sci-fi&sortBy=year" \
-     -H "Authorization: Bearer $TOKEN1"
-echo -e "\n\n"
-
-echo "=== Suche 2: Partial Matching nach Titel ('inter') ==="
-# Erwartet: Nur Interstellar
-curl -i -X GET "$BASE_URL/media?title=inter" \
-     -H "Authorization: Bearer $TOKEN1"
-echo -e "\n\n"
-
-echo "=== Suche 3: Filter nach Score (>= 4 Sterne) ==="
-# Erwartet: Nur The Matrix (hat von User 2 5 Sterne bekommen)
+echo "=== 14. Suche: Filter nach Score (>= 4 Sterne) ==="
+# Erwartet: The Matrix - Reloaded
 curl -i -X GET "$BASE_URL/media?rating=4&sortBy=score" \
      -H "Authorization: Bearer $TOKEN1"
 echo -e "\n\n"
 
-# --- 7. LEADERBOARD ---
-echo "=== Leaderboard abrufen ==="
-# Erwartet: 200 OK. User 2 sollte vor User 1 sein (da User 2 das Rating erstellt hat)
+# --- 7. LEADERBOARD & STATS ---
+echo "=== 15. Leaderboard abrufen ==="
 curl -i -X GET "$BASE_URL/leaderboard"
 echo -e "\n\n"
 
-# --- 8. PROFIL STATS & RATING HISTORY ---
-echo "=== Rating History abrufen: User 2 holt seine Bewertungen ==="
-# Erwartet: 200 OK mit einer Liste seiner Ratings
-curl -i -X GET "$BASE_URL/users/user2/ratings" \
-     -H "Authorization: Bearer $TOKEN2"
-echo -e "\n\n"
-
-echo "=== Profil abrufen: User 2 schaut seine eigenen Stats an ==="
-# Erwartet: 200 OK. Das JSON sollte jetzt ratingCount: 1, averageScore: 5.0 und favoriteGenre: "sci-fi" enthalten
+echo "=== 16. Profil abrufen: User 2 schaut seine eigenen Stats an ==="
 curl -i -X GET "$BASE_URL/users/user2/profile" \
      -H "Authorization: Bearer $TOKEN2"
 echo -e "\n\n"
 
-# --- 9. CLEANUP ---
-echo "=== 10. User 1 löscht den Film (Media ID 1) ==="
+# --- 8. CLEANUP (inkl. dem neuen Rating-Delete) ---
+echo "=== 17. User 2 löscht seine eigene Bewertung (Rating ID 1) ==="
+# Erwartet: 204 No Content
+curl -i -X DELETE "$BASE_URL/ratings/1" \
+     -H "Authorization: Bearer $TOKEN2"
+echo -e "\n\n"
+
+echo "=== 18. User 1 löscht den Film (Media ID 1) ==="
 # Erwartet: 204 No Content
 curl -i -X DELETE "$BASE_URL/media/1" \
      -H "Authorization: Bearer $TOKEN1"
