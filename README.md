@@ -111,7 +111,7 @@ Ein umfassendes **Bash-Testskript (`integration-test.sh`)** testet den komplette
 
 ---
 
-# 🔗 Repository
+# Repository
 
 GitHub Repository:
 https://github.com/floerychristopher/media-ratings-platform
