@@ -65,20 +65,24 @@ public class UserService {
     }
 
     // Update (only the user itself)
-    public User updateProfile(User authenticatedUser, String username, String bio) throws Exception {
-        // Check that user can only edit own profile
-        if (!authenticatedUser.getUsername().equals(username)) {
+    public User updateProfile(User authUser, String targetUsername, String newBio, String newEmail) throws SQLException {
+        if (!authUser.getUsername().equals(targetUsername)) {
             throw new SecurityException("Cannot edit another user's profile");
         }
 
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
+        User targetUser = userRepository.findByUsername(targetUsername);
+        if (targetUser == null) {
             throw new IllegalArgumentException("User not found");
         }
 
-        user.setBio(bio);
-        userRepository.update(user);
-        return user;
+        // Setze Bio und E-Mail
+        targetUser.setBio(newBio);
+        targetUser.setEmail(newEmail);
+
+        userRepository.update(targetUser); // Speichert in der DB
+        userRepository.loadUserStatistics(targetUser);
+
+        return targetUser;
     }
 
     public java.util.List<User> getLeaderboard() throws java.sql.SQLException {

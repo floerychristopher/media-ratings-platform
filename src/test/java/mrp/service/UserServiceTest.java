@@ -128,23 +128,25 @@ public class UserServiceTest {
 
         when(userRepository.findByUsername("testuser")).thenReturn(testUser);
 
-        // Act
-        User result = userService.updateProfile(authUser, "testuser", "New Bio");
+        // Act (Jetzt mit 4 Parametern: inkl. E-Mail!)
+        User result = userService.updateProfile(authUser, "testuser", "New Bio", "test@example.com");
 
         // Assert
         assertEquals("New Bio", result.getBio());
-        verify(userRepository, times(1)).update(testUser); // Prüfen ob Update aufgerufen wurde
+        assertEquals("test@example.com", result.getEmail()); // Checken, ob die Mail auch ankommt
+        verify(userRepository, times(1)).update(testUser);
     }
 
     @Test
     void updateProfile_OtherUsersProfile_ThrowsSecurityException() {
         // Arrange
         User authUser = new User();
-        authUser.setUsername("hacker"); // Versucht das Profil von 'testuser' zu ändern
+        authUser.setUsername("hacker");
 
         // Act & Assert
         Exception exception = assertThrows(SecurityException.class, () -> {
-            userService.updateProfile(authUser, "testuser", "Hacked Bio!");
+            // Auch hier den 4. Parameter ergänzen
+            userService.updateProfile(authUser, "testuser", "Hacked Bio!", "hacker@evil.com");
         });
         assertEquals("Cannot edit another user's profile", exception.getMessage());
     }

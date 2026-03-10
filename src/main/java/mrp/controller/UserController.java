@@ -100,7 +100,7 @@ public class UserController {
     /**
      * PUT /api/users/{username}/profile
      * Body: {"Bio":"Hello, I love movies!"}
-     * Requires authentication, only your own profile
+     * Requires authentication (only your own profile)
      */
     public HttpResponse updateProfile(HttpRequest request) {
         try {
@@ -109,9 +109,12 @@ public class UserController {
 
             String username = request.getPathParam("username");
             Map body = JsonUtil.fromJson(request.getBody(), Map.class);
-            String bio = (String) body.get("Bio");
 
-            User updated = userService.updateProfile(authUser, username, bio);
+            String bio = (String) body.get("bio");
+            String email = (String) body.get("email");
+
+            User updated = userService.updateProfile(authUser, username, bio, email);
+
             updated.setPassword(null);
             return HttpResponse.ok(JsonUtil.toJson(updated));
 
