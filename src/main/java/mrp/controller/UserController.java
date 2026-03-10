@@ -86,7 +86,7 @@ public class UserController {
             String username = request.getPathParam("username");
             User user = userService.getProfile(username);
 
-            // Build a profile response (without password, with stats later)
+            // Build profile response
             user.setPassword(null);
             return HttpResponse.ok(JsonUtil.toJson(user));
 
