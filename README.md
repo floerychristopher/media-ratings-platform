@@ -88,7 +88,7 @@ mvn test
 
 ## Integration Tests
 
-Ein umfassendes **Bash-Testskript (`test.sh`)** testet den kompletten API-Workflow:
+Ein umfassendes **Bash-Testskript (`integration-test.sh`)** testet den kompletten API-Workflow:
 
 * Registrierung
 * Login
