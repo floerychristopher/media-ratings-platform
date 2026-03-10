@@ -10,6 +10,7 @@ import mrp.util.JsonUtil;
 
 import java.sql.SQLException;
 import java.util.List;
+import java.util.Map;
 
 public class MediaController {
     private final MediaService service;
@@ -53,12 +54,18 @@ public class MediaController {
 
     public HttpResponse getAll(HttpRequest req) {
         try {
-            // Hinweis: Laut Postman-Collection müssen wir hier später noch das Filtern
-            // und Suchen anbauen (req.getQueryParams()). Für die Intermediate Submission reicht es aber so!
-            List<Media> all = service.getAllMedia();
-            return HttpResponse.ok(JsonUtil.toJson(all));
+            // Alle Query-Parameter (?title=...&genre=...) aus der URL holen
+            Map<String, String> queryParams = req.getQueryParams();
+
+            // Suche über den Service ausführen
+            List<Media> results = service.searchAndFilter(queryParams);
+
+            return HttpResponse.ok(JsonUtil.toJson(results));
+
+        } catch (NumberFormatException e) {
+            return HttpResponse.badRequest("Invalid number format in query parameters");
         } catch (SQLException e) {
-            return HttpResponse.internalError(e.getMessage());
+            return HttpResponse.internalError("Database error during search: " + e.getMessage());
         }
     }
 
