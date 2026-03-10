@@ -13,6 +13,7 @@ public class Media {
     private int ageRestriction;
     private int createdBy;
     private LocalDateTime createdAt;
+    private double averageScore;
 
     public Media() {}
 
@@ -43,4 +44,7 @@ public class Media {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public double getAverageScore() { return averageScore; }
+    public void setAverageScore(double averageScore) { this.averageScore = averageScore; }
 }
