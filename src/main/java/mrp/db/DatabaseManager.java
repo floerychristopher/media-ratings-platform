@@ -22,7 +22,7 @@ public class DatabaseManager {
         return instance;
     }
 
-    // Returns a fresh connections each time
+    // Returns fresh connections each time
     public Connection getConnection() throws SQLException {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
@@ -35,7 +35,8 @@ public class DatabaseManager {
                 username VARCHAR(255) UNIQUE NOT NULL,
                 password VARCHAR(255) NOT NULL,
                 bio TEXT DEFAULT '',
-                created_at TIMESTAMP DEFAULT NOW()
+                created_at TIMESTAMP DEFAULT NOW(),
+                email varchar(255)
             );
 
             CREATE TABLE IF NOT EXISTS media (
