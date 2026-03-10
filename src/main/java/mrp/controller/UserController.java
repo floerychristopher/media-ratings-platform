@@ -15,11 +15,13 @@ public class UserController {
     private final UserService userService;
     private final TokenManager tokenManager;
     private final mrp.service.MediaService mediaService;
+    private final mrp.service.RatingService ratingService;
 
-    public UserController(UserService userService, TokenManager tokenManager, mrp.service.MediaService mediaService) {
+    public UserController(UserService userService, TokenManager tokenManager, mrp.service.MediaService mediaService, mrp.service.RatingService ratingService) {
         this.userService = userService;
         this.tokenManager = tokenManager;
         this.mediaService = mediaService;
+        this.ratingService = ratingService;
     }
 
     /**
