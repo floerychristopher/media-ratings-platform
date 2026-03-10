@@ -8,6 +8,7 @@ public class User {
     private String password;
     private String bio;
     private LocalDateTime createdAt;
+    private int ratingCount;
 
     // Default constructor (needed for Jackson deserialization)
     public User() {}
@@ -32,4 +33,7 @@ public class User {
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public int getRatingCount() { return ratingCount; }
+    public void setRatingCount(int ratingCount) { this.ratingCount = ratingCount; }
 }
