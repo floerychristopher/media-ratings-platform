@@ -9,6 +9,8 @@ public class User {
     private String bio;
     private LocalDateTime createdAt;
     private int ratingCount;
+    private double averageScore;
+    private String favoriteGenre;
 
     // Default constructor (needed for Jackson deserialization)
     public User() {}
@@ -36,4 +38,10 @@ public class User {
 
     public int getRatingCount() { return ratingCount; }
     public void setRatingCount(int ratingCount) { this.ratingCount = ratingCount; }
+
+    public double getAverageScore() { return averageScore; }
+    public void setAverageScore(double averageScore) { this.averageScore = averageScore; }
+
+    public String getFavoriteGenre() { return favoriteGenre; }
+    public void setFavoriteGenre(String favoriteGenre) { this.favoriteGenre = favoriteGenre; }
 }
