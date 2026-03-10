@@ -66,13 +66,12 @@ public class UserRepository {
 
     // Updates user bio
     public void update(User user) throws SQLException {
-        String sql = "UPDATE users SET bio = ? WHERE id = ?";
-
+        String sql = "UPDATE users SET bio = ?, email = ? WHERE id = ?";
         try (Connection conn = db.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
-
             stmt.setString(1, user.getBio());
-            stmt.setInt(2, user.getId());
+            stmt.setString(2, user.getEmail());
+            stmt.setInt(3, user.getId());
             stmt.executeUpdate();
         }
     }
