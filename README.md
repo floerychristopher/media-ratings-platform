@@ -106,7 +106,7 @@ Ein umfassendes **Bash-Testskript (`test.sh`)** testet den kompletten API-Workfl
 ### Tests ausführen
 
 ```bash
-./test.sh
+./integration-integration-test.sh
 ```
 
 ---
