@@ -67,6 +67,8 @@ public class UserService {
         if (user == null) {
             throw new IllegalArgumentException("User not found");
         }
+        // NEU: Lade die Statistiken in das User-Objekt, bevor es zurückgegeben wird!
+        userRepository.loadUserStatistics(user);
         return user;
     }
 
