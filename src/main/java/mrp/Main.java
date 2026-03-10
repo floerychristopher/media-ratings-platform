@@ -22,15 +22,15 @@ public class Main {
 
         TokenManager tokenManager = new TokenManager();
 
-        // --- Build the dependency chain for Users ---
-        UserRepository userRepository = new UserRepository(db);
-        UserService userService = new UserService(userRepository, tokenManager);
-        UserController userController = new UserController(userService, tokenManager);
-
-        // --- Build the dependency chain for Media ---
+        // 1. Zuerst Media instanziieren
         MediaRepository mediaRepository = new MediaRepository(db);
         MediaService mediaService = new MediaService(mediaRepository);
         MediaController mediaController = new MediaController(mediaService, tokenManager);
+
+        // 2. Dann User (hier den mediaService mitgeben!)
+        UserRepository userRepository = new UserRepository(db);
+        UserService userService = new UserService(userRepository, tokenManager);
+        UserController userController = new UserController(userService, tokenManager, mediaService);
 
         // --- Build the dependency chain for Rating ---
         RatingRepository ratingRepository = new RatingRepository(db);
@@ -60,6 +60,11 @@ public class Main {
         router.addRoute("PUT", "/api/ratings/{id}", ratingController::update);
         router.addRoute("POST", "/api/ratings/{id}/like", ratingController::like);
         router.addRoute("POST", "/api/ratings/{id}/confirm", ratingController::confirm);
+
+        // Favoriten-Routen
+        router.addRoute("POST", "/api/media/{id}/favorite", mediaController::addFavorite);
+        router.addRoute("DELETE", "/api/media/{id}/favorite", mediaController::removeFavorite);
+        router.addRoute("GET", "/api/users/{username}/favorites", userController::getFavorites);
 
         // --- Start server ---
         HttpServer server = new HttpServer(9090, router); // Port auf 8080 angepasst, wie in den Tests
