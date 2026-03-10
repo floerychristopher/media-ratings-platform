@@ -149,7 +149,7 @@ echo -e "\n\n"
 
 # --- 7. LEADERBOARD ---
 echo "=== Leaderboard abrufen ==="
-# Erwartet: 200 OK. User 2 sollte vor User 1 sein (da User 2 das Rating erstellt hat).
+# Erwartet: 200 OK. User 2 sollte vor User 1 sein (da User 2 das Rating erstellt hat)
 curl -i -X GET "$BASE_URL/leaderboard"
 echo -e "\n\n"
 
@@ -161,15 +161,14 @@ curl -i -X GET "$BASE_URL/users/user2/ratings" \
 echo -e "\n\n"
 
 echo "=== Profil abrufen: User 2 schaut seine eigenen Stats an ==="
-# Erwartet: 200 OK. Das JSON sollte jetzt ratingCount: 1, averageScore: 5.0 und favoriteGenre: "sci-fi" enthalten!
+# Erwartet: 200 OK. Das JSON sollte jetzt ratingCount: 1, averageScore: 5.0 und favoriteGenre: "sci-fi" enthalten
 curl -i -X GET "$BASE_URL/users/user2/profile" \
      -H "Authorization: Bearer $TOKEN2"
 echo -e "\n\n"
 
-# --- 9. CLEANUP / LÖSCHEN ---
+# --- 9. CLEANUP ---
 echo "=== 10. User 1 löscht den Film (Media ID 1) ==="
 # Erwartet: 204 No Content
-# Hinweis: Durch "ON DELETE CASCADE" in der DB wird hierbei auch das Rating und der Like gelöscht!
 curl -i -X DELETE "$BASE_URL/media/1" \
      -H "Authorization: Bearer $TOKEN1"
 echo -e "\n"
